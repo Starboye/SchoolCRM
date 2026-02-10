@@ -49,17 +49,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
 
                 if($usertype == 2) {
-                    header("Location: adminDashBoard.php");
                     $_SESSION["access"] = "2";
                     $_SESSION["name"] = $username;
                     $_SESSION["id"] = $row['id'];
+                    header("Location: ../admin/dashboard.php");
+                    exit;
                 }
 
                 if($usertype == 3) {
-                    header("Location: adminDashBoard.php");
                     $_SESSION["access"] = "3";
                     $_SESSION["name"] = $username;
                     $_SESSION["id"] = $row['id'];
+                    header("Location: ../admin/dashboard.php");
+                    exit;
                 }
             }
 
