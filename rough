@@ -1,0 +1,20 @@
+$_SESSION["access"] $_SESSION["name"] $_SESSION["id"]
+
+
+INSERT INTO `student_info` (`id`, `name`, `age`, `standard`, `section`, `gender`, `dateOfBirth`, `address`, `bloodGroup`, `emailID`, `fatherName`, `fatherOccupation`, `fatherPhone`, `fatherAnnualIncome`, `motherName`, `motherOccupation`, `motherPhone`, `motherAnnualIncome`, `community`, `identificationMark`, `comments`, `previousEducation`, `coCurricularActivity`, `locOfProfilePic`) VALUES ('2017115611', 'Viswaprasad', '5', '1', 'A', 'Male', '29-06-2000', 'No: 41, First cross, Ramalingam Nagar, Sokkanathenpet, Pondicherry 605010.', 'B +ve', 'meetprasadviswa@gmail.com', 'Elumalai', 'Advocate', '9489324639', '100000', 'Bhuvaneswari', 'Assistant Agriculture Officer', '9500215554', '600000', 'General', 'A mole in the chin. A scare in the fore head', '-', 'St. Antony\'s Matric Higher Secondary School. Cuddalore', 'Null', 'C:\\Users\\viswa\\Downloads\\Viswaprasad_Passport_Size.png');
+
+
+
+UPDATE `attendance` SET `status`='0' WHERE `id`='2017115611' and `date`="2023-12-20"
+
+INSERT INTO `marks` (`id`, `subjectName`, `testName`, `marksObtained`, `totalMarks`) VALUES ('2017115611', 'Mathematics', 'Term 1', '90', '100'), ('2017115611', 'Science', 'Term 1', '50', '100'), ('2017115611', 'Social', 'Term 1', '20', '100'), ('2017115611', 'English', 'Term 1', '100', '100'), ('2017115611', 'Tamil', 'Term 1', '35', '100');
+
+CREATE TABLE mark ( id VARCHAR(20), subjectName VARCHAR(50), testName VARCHAR(50), marksObtained VARCHAR(10), totalMarks VARCHAR(10), PRIMARY KEY (id, subjectName, testName) );
+
+INSERT INTO `notification`(`id`, `notification`, `sentBy`, `date`, `time`, `status`) VALUES ('2017115611','Parent-Teachers meeting on saturday afternoon 12:30 PM','Management','02-03-2024','05:10 AM','0');
+
+INSERT INTO `attendance`(`id`, `name`, `date`, `status`, `markedBy`) VALUES ('2017115611','Prasad','2024-03-02','0','Jayanthi')
+
+INSERT INTO `marks_new` (`id`, `subjectName`, `testName`, `date`, `grandTotal`, `totalMarks`, `english`, `tamil`, `maths`, `science`, `social`) VALUES ('2017115611', '0', 'Term 1', '2023-01-01', '', '100', '50', '60', '40', '80', '50');
+
+INSERT INTO `assessments`(`id`, `date`, `test`, `subjectName`, `marks`, `Result`) VALUES ('2017115611','29-06-2024','unit-1','English','35/50','PASS');
