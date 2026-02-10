@@ -6,6 +6,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $password = $_POST['password'];
         $usertype = $_POST['userType'];
 
+        // UI supports only 0=student, 1=teacher, 2=admin
+        if (!in_array((int)$usertype, [0, 1, 2], true)) {
+            echo '<script>alert("Invalid user type selected."); window.location.href = "../index.php";</script>';
+            exit;
+        }
+
         $servername = "localhost";
         $username_db = "root";
         $password_db = "";
@@ -50,14 +56,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 if($usertype == 2) {
                     $_SESSION["access"] = "2";
-                    $_SESSION["name"] = $username;
-                    $_SESSION["id"] = $row['id'];
-                    header("Location: ../admin/dashboard.php");
-                    exit;
-                }
-
-                if($usertype == 3) {
-                    $_SESSION["access"] = "3";
                     $_SESSION["name"] = $username;
                     $_SESSION["id"] = $row['id'];
                     header("Location: ../admin/dashboard.php");

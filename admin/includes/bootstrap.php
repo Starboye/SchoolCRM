@@ -7,7 +7,7 @@ if (!isset($_SESSION['access'], $_SESSION['id'], $_SESSION['name'])) {
 }
 
 $access = (int)$_SESSION['access'];
-if (!in_array($access, [2, 3], true)) {
+if ($access !== 2) {
     http_response_code(403);
     die('Unauthorized access');
 }
