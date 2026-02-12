@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
+require_permission($db, 'can_delete_attendance');
 $pageTitle = 'Attendance Control';
 $msg = '';
 
@@ -9,6 +10,11 @@ $section = $_GET['section'] ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $sid = $_POST['id'] ?? '';
+    if (policy_requires_approval($db, 'attendance_override')) {
+        submit_approval($db,'attendance','override','attendance',$sid,$_POST);
+        log_audit($db,'attendance','request_override','attendance',$sid,null,$_POST);
+        $msg='Attendance override queued for approval.';
+    } else {
     $date = $_POST['date'] ?? date('Y-m-d');
     $morning = isset($_POST['morning']) ? 1 : 0;
     $afternoon = isset($_POST['afternoon']) ? 1 : 0;
@@ -44,6 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     mysqli_stmt_close($stmt);
     mysqli_stmt_close($existsStmt);
     $msg = 'Attendance updated.';
+    }
 }
 
 $sections = mysqli_query($db, 'SELECT DISTINCT standard, section FROM student_info ORDER BY standard, section');

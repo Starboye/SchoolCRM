@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
+require_permission($db, 'can_manage_users');
 $pageTitle = 'Manage Students';
 $msg = '';
 
@@ -48,6 +49,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'delete') {
         $id = trim($_POST['id'] ?? '');
+        if (policy_requires_approval($db, 'user_delete')) {
+            submit_approval($db, 'students', 'delete', 'student', $id, ['id'=>$id]);
+            log_audit($db,'students','request_delete','student',$id,['id'=>$id],null);
+            $msg = 'Delete queued for approval.';
+        } else {
         $stmt = mysqli_prepare($db, "DELETE FROM student_info WHERE id=?");
         mysqli_stmt_bind_param($stmt, 's', $id);
         mysqli_stmt_execute($stmt);
@@ -58,6 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         mysqli_stmt_execute($stmt);
         mysqli_stmt_close($stmt);
         $msg = 'Student deleted.';
+        }
     }
 }
 

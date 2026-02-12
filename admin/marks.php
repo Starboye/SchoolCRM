@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
+require_permission($db, 'can_edit_marks');
 $pageTitle = 'Marks Control';
 $msg = '';
 
@@ -8,6 +9,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'save') {
         $id = trim($_POST['id'] ?? '');
+        if (policy_requires_approval($db, 'marks_edit')) {
+            submit_approval($db,'marks','save','marks_new',$id,$_POST);
+            log_audit($db,'marks','request_save','marks_new',$id,null,$_POST);
+            $msg='Marks change queued for approval.';
+        } else {
         $testName = trim($_POST['testName'] ?? 'Term 1');
         $date = $_POST['date'] ?? date('Y-m-d');
         $total = (int)($_POST['totalMarks'] ?? 100);
@@ -28,6 +34,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             mysqli_stmt_bind_param($stmt, 'siiiiiisss', $date, $total, $english, $tamil, $maths, $science, $social, $grandTotal, $id, $testName);
             mysqli_stmt_execute($stmt);
             mysqli_stmt_close($stmt);
+            $rev = mysqli_prepare($db,'INSERT INTO marks_revisions (student_id, test_name, before_json, after_json, changed_by) VALUES (?,?,?,?,?)');
+            $before='{}'; $after=json_encode($_POST); $by=(string)$_SESSION['id'];
+            mysqli_stmt_bind_param($rev,'sssss',$id,$testName,$before,$after,$by); mysqli_stmt_execute($rev); mysqli_stmt_close($rev);
             $msg = 'Marks updated.';
         } else {
             $subjectName = '0';
@@ -39,6 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         mysqli_stmt_close($existsStmt);
+        }
     }
 
     if ($action === 'delete') {
