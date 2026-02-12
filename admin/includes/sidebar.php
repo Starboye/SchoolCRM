@@ -18,5 +18,6 @@
     <li class="nav-item"><a class="nav-link collapsed" href="data_quality.php"><i class="bi bi-clipboard2-check"></i><span>Data Quality</span></a></li>
     <li class="nav-item"><a class="nav-link collapsed" href="delegation.php"><i class="bi bi-diagram-3"></i><span>Delegation</span></a></li>
     <li class="nav-item"><a class="nav-link collapsed" href="../announcements.php"><i class="bi bi-broadcast"></i><span>Legacy Notices</span></a></li>
+    <li class="nav-item"><a class="nav-link collapsed" href="../announcements.php"><i class="bi bi-megaphone"></i><span>Announcements</span></a></li>
   </ul>
 </aside>
