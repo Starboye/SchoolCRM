@@ -1,0 +1,206 @@
+{\rtf1\ansi\deff0
+{\fonttbl{\f0 Calibri;}}
+\fs22
+\par\b\fs32 SchoolCRM – Full Detailed Documentation\b0\fs22\par
+\par
+\par\b\fs28 1. Project Overview\b0\fs22\par
+\par SchoolCRM is a role-based school management system built with PHP, MySQL, Bootstrap, and shared frontend assets. It supports three core personas:
+\par\tab\bullet\tab **Student**: views attendance, marks, homework, notifications, timetable, fee info.
+\par\tab\bullet\tab **Teacher**: records attendance, publishes homework and announcements, updates marks.
+\par\tab\bullet\tab **Admin**: governs users, academic operations, approvals, permissions, analytics, planning.
+\par
+\par------------------------------------------------------------\par
+\par
+\par\b\fs28 2. Architecture and Folder Responsibilities\b0\fs22\par
+\par
+\par\b\fs24 2.1 Entry and compatibility layer\b0\fs22\par
+\par\tab\bullet\tab `index.php` — common login UI.
+\par\tab\bullet\tab Root compatibility wrappers (e.g., `adminDashboard.php`, `FeeDetails.php`) keep older links working and delegate to `modules/...`.
+\par
+\par\b\fs24 2.2 Role modules\b0\fs22\par
+\par\tab\bullet\tab `student/` — student-first pages and role-specific workflows.
+\par\tab\bullet\tab `teacher/` — teacher-first pages and data-entry workflows.
+\par\tab\bullet\tab `admin/` — admin governance + operations pages.
+\par
+\par\b\fs24 2.3 Shared/cross-cutting\b0\fs22\par
+\par\tab\bullet\tab `backoffice/` — login, logout, password/session paths and legacy aliases.
+\par\tab\bullet\tab `forms/` — submission and AJAX endpoints.
+\par\tab\bullet\tab `config/` — database wiring.
+\par\tab\bullet\tab `middleware/` — access checks.
+\par\tab\bullet\tab `assets/` — CSS/JS/vendor dependencies.
+\par\tab\bullet\tab `modules/` — reorganized legacy page implementations grouped by domain.
+\par
+\par------------------------------------------------------------\par
+\par
+\par\b\fs28 3. Authentication and Session Flow\b0\fs22\par
+\par
+\par\b\fs28 3.1 Login flow\b0\fs22\par
+\par 1. User opens `index.php`.
+\par 2. Submits username, password, and role.
+\par 3. `backoffice/login.php` validates credentials against `user_login`.
+\par 4. On success, session variables are set (`access`, `name`, `id`).
+\par 5. Redirect target depends on role:
+\par    - student → student dashboard route
+\par    - teacher → `teacher/dashboard.php`
+\par    - admin → `admin/dashboard.php`
+\par
+\par\b\fs28 3.2 Legacy admin route compatibility\b0\fs22\par
+\par To support older bookmarks/redirects, these compatibility entrypoints exist:
+\par\tab\bullet\tab `backoffice/adminDashBoard.php`
+\par\tab\bullet\tab `backoffice/adminDashboard.php`
+\par
+\par Both load `admin/dashboard.php`.
+\par
+\par------------------------------------------------------------\par
+\par
+\par\b\fs28 4. Feature Documentation by Persona\b0\fs22\par
+\par
+\par\b\fs28 4.1 Student features\b0\fs22\par
+\par
+\par\b\fs24 Dashboard\b0\fs22\par
+\par\tab\bullet\tab Overview cards/charts and academic summaries.
+\par\tab\bullet\tab Files:
+\par   - `student/studentDashboard.php`
+\par   - legacy: `modules/dashboards/studentDashboard.php`
+\par
+\par\b\fs24 Attendance\b0\fs22\par
+\par\tab\bullet\tab Daily status and historical attendance.
+\par\tab\bullet\tab Files:
+\par   - `student/attendance.php`
+\par   - support: `backoffice/attendanceToday.php`
+\par
+\par\b\fs24 Marks + report cards\b0\fs22\par
+\par\tab\bullet\tab Subject marks display by exam/term.
+\par\tab\bullet\tab Report card rendering and PDF export support.
+\par\tab\bullet\tab Files:
+\par   - `student/marks.php`
+\par   - `modules/student/academic/reportCard.php`
+\par   - `modules/student/academic/reportCard_pdf.php`
+\par
+\par\b\fs24 Homework + notifications\b0\fs22\par
+\par\tab\bullet\tab Reads class/school assignments and notices.
+\par\tab\bullet\tab Files:
+\par   - `student/homework.php`
+\par   - `student/notifications.php`
+\par   - shared feeds: `modules/communication/homework.php`, `modules/communication/announcements.php`
+\par
+\par\b\fs24 Timetable + fee details\b0\fs22\par
+\par\tab\bullet\tab Accesses schedule and fee detail screens.
+\par\tab\bullet\tab Files:
+\par   - `modules/student/academic/TimeTable.php`
+\par   - `modules/student/academic/FeeDetails.php`
+\par
+\par\b\fs28 4.2 Teacher features\b0\fs22\par
+\par
+\par\b\fs24 Dashboard and profile\b0\fs22\par
+\par\tab\bullet\tab Teacher overview and profile management.
+\par\tab\bullet\tab Files:
+\par   - `teacher/dashboard.php`
+\par   - `teacher/teacher_profile.php`
+\par   - includes: `teacher/includes/*`
+\par
+\par\b\fs24 Attendance operations\b0\fs22\par
+\par\tab\bullet\tab Records attendance and updates entries.
+\par\tab\bullet\tab Files:
+\par   - `teacher/attendance.php`
+\par   - `forms/submitAttendance.php`
+\par   - `forms/updateAttendanceAjax.php`
+\par
+\par\b\fs24 Marks operations\b0\fs22\par
+\par\tab\bullet\tab Adds marks and reviews student records.
+\par\tab\bullet\tab Files:
+\par   - `teacher/add_marks.php`
+\par   - `teacher/view_studentData.php`
+\par
+\par\b\fs24 Communication operations\b0\fs22\par
+\par\tab\bullet\tab Publishes announcements and homework.
+\par\tab\bullet\tab Files:
+\par   - `teacher/add_announcement.php`
+\par   - `teacher/add_homework.php`
+\par
+\par\b\fs28 4.3 Admin features\b0\fs22\par
+\par
+\par\b\fs24 Core shell\b0\fs22\par
+\par\tab\bullet\tab Files:
+\par   - `admin/index.php`
+\par   - `admin/dashboard.php`
+\par   - `admin/includes/*`
+\par
+\par\b\fs24 Governance + control\b0\fs22\par
+\par\tab\bullet\tab Approval, delegation, permissions, security, governance, and data quality.
+\par\tab\bullet\tab Files:
+\par   - `admin/approvals.php`
+\par   - `admin/delegation.php`
+\par   - `admin/permissions.php`
+\par   - `admin/security.php`
+\par   - `admin/attendance_governance.php`
+\par   - `admin/data_quality.php`
+\par
+\par\b\fs24 Academic administration\b0\fs22\par
+\par\tab\bullet\tab Master entities and academic operation pages.
+\par\tab\bullet\tab Files:
+\par   - `admin/students.php`
+\par   - `admin/teachers.php`
+\par   - `admin/attendance.php`
+\par   - `admin/exams.php`
+\par   - `admin/marks.php`
+\par   - `admin/homework.php`
+\par
+\par\b\fs24 Planning + insights\b0\fs22\par
+\par\tab\bullet\tab Files:
+\par   - `admin/planner.php`
+\par   - `admin/analytics.php`
+\par   - `admin/notification_center.php`
+\par   - `admin/bulk_ops.php`
+\par
+\par------------------------------------------------------------\par
+\par
+\par\b\fs28 5. Database Notes\b0\fs22\par
+\par\tab\bullet\tab Default DB name appears as `asimos` in app code.
+\par\tab\bullet\tab Update credentials in `config/db.php` (and any hardcoded local configs if present).
+\par\tab\bullet\tab Ensure required tables are imported before first login.
+\par
+\par------------------------------------------------------------\par
+\par
+\par\b\fs28 6. Local Setup (Developer)\b0\fs22\par
+\par 1. Install PHP 8+ and MySQL.
+\par 2. Place repo under web root (e.g., `htdocs/Asimos` for XAMPP).
+\par 3. Import DB schema/data.
+\par 4. Configure DB credentials.
+\par 5. Open `/Asimos/index.php` and test each role login.
+\par
+\par------------------------------------------------------------\par
+\par
+\par\b\fs28 7. Troubleshooting\b0\fs22\par
+\par
+\par\b\fs24 404 on old routes\b0\fs22\par
+\par\tab\bullet\tab Use compatibility endpoints in `backoffice/` and root wrappers.
+\par\tab\bullet\tab Verify Apache document root points to the project folder.
+\par
+\par\b\fs24 Login fails\b0\fs22\par
+\par\tab\bullet\tab Confirm role selected at login matches user role in DB.
+\par\tab\bullet\tab Confirm DB connectivity and table data.
+\par
+\par\b\fs24 Blank pages\b0\fs22\par
+\par\tab\bullet\tab Enable PHP errors in local dev and check Apache/PHP error logs.
+\par
+\par------------------------------------------------------------\par
+\par
+\par\b\fs28 8. Contribution Guide (Where to Add Code)\b0\fs22\par
+\par\tab\bullet\tab Student functionality: `student/` or `modules/student/academic/`
+\par\tab\bullet\tab Teacher functionality: `teacher/`
+\par\tab\bullet\tab Admin functionality: `admin/`
+\par\tab\bullet\tab Shared account/session logic: `backoffice/` or `modules/common/account/`
+\par\tab\bullet\tab Submission/AJAX endpoints: `forms/`
+\par\tab\bullet\tab Shared frontend resources: `assets/`
+\par
+\par Keep root mostly for top-level entrypoints and compatibility wrappers.
+\par
+\par------------------------------------------------------------\par
+\par
+\par\b\fs28 9. Documentation Map\b0\fs22\par
+\par\tab\bullet\tab Full project document: this file (`docs/PROJECT_DOCUMENTATION.md`)
+\par\tab\bullet\tab Functional summary: `docs/FUNCTIONALITIES.md`
+\par\tab\bullet\tab Structure map: `docs/STRUCTURE.md`
+\par\tab\bullet\tab User operations guide: `docs/USER_GUIDE.md`
+}
