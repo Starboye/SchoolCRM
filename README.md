@@ -32,6 +32,9 @@ For backwards compatibility, original root URLs remain available as lightweight 
 
 ## 3) Documentation
 
+- **Documentation hub (start here):** `docs/README.md`
+- **Full detailed documentation:** `docs/PROJECT_DOCUMENTATION.md`
+- Editable Word document: `docs/PROJECT_DOCUMENTATION_EDITABLE.rtf`
 - Functional documentation: `docs/FUNCTIONALITIES.md`
 - File organization and routing map: `docs/STRUCTURE.md`
 - New-user setup and usage guide: `docs/USER_GUIDE.md`
