@@ -1,0 +1,39 @@
+---
+description: Session keys, roles, RBAC, and login gotchas
+alwaysApply: true
+---
+
+# Auth and roles
+
+## `user_login.access`
+
+| access | Role | After `backoffice/login.php` |
+|--------|------|------------------------------|
+| 0 | Student | `studentDashboard.php`; session `id`, `name`, `access` |
+| 1 | Teacher | `teacher/dashboard.php`; same keys |
+| 2 | Admin | `admin/dashboard.php`; same keys |
+
+Login matches **username = `user_login.name`** and password via `app_password_verify()` (supports legacy plaintext; rehashes on successful login). Radio `userType` must equal `access`.
+
+## Session keys
+
+- **Main app:** `$_SESSION['id']`, `$_SESSION['name']`, `$_SESSION['access']`. `establish_user_session()` also sets `user_id` = `id` for transition compatibility.
+- **`student/` portal (retired):** all `student/*.php` redirect to main portal via `app_url()`. `middleware/auth_student.php` uses `id` (syncs `user_id`) and redirects to `index.php`.
+- Teacher auth redirects unauthenticated users to `app_url('index.php')`.
+- Admin bootstrap: missing session → `../index.php`; non-admin → 403.
+
+## Admin RBAC
+
+`admin/includes/bootstrap.php`: permissions from `user_roles` → `role_permissions`. If none assigned, **access=2 gets every row in `permissions`**. Use `require_permission($db, 'can_...')` on each admin page. Helpers: `log_audit`, `policy_requires_approval`, `submit_approval`.
+
+Permission keys: `can_manage_users`, `can_edit_marks`, `can_delete_attendance`, `can_manage_notifications`, `can_manage_planner`, `can_manage_exams`, `can_manage_fees`, `can_view_analytics`, `can_manage_security`, `can_manage_data_quality`, `can_manage_delegation`.
+
+## Notifications targeting
+
+`notification.id` is a recipient key: student id, teacher id, `ALL`, or `CLASS_{standard}_{section}` (uppercase). `status` 0 typically means unread/active.
+
+## Broken / unsafe patterns to preserve unless asked to fix
+
+- Login uses prepared statements in `backoffice/login.php`; rehash-on-login for legacy plaintext passwords. Do not echo credentials.
+- Logout: use `logout.php` or `app_logout()` — destroys session and redirects via `app_url('index.php')`. `backoffice/logout.php` delegates to root `logout.php`.
+- Login audit writes to `login_audit` (table from `admin/schema/admin_controls.sql`).

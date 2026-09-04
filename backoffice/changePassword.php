@@ -1,72 +1,65 @@
 <?php
-session_start();
+declare(strict_types=1);
 
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_SESSION["id"], $_SESSION["name"])) {
+require_once __DIR__ . '/../config/db.php';
+app_session_start();
 
-    $username        = $_SESSION["name"];
-    $sessionId       = $_SESSION["id"];   // from session
-    $postedId        = $_POST["id"] ?? ""; // hidden field, just for extra safety
-    $currentPassword = $_POST["currentPassword"] ?? "";
-    $newPassword     = $_POST["newPassword"] ?? "";
-    $confirmPassword = $_POST["confirmPassword"] ?? "";
-
-    // Basic validation
-    if ($newPassword === "" || $currentPassword === "" || $confirmPassword === "") {
-        echo '<script>alert("All fields are required."); window.location.href = "../users-profile.php";</script>';
-        exit;
-    }
-
-    if ($newPassword !== $confirmPassword) {
-        echo '<script>alert("New password and confirm password do not match."); window.location.href = "../users-profile.php";</script>';
-        exit;
-    }
-
-    if (strlen($newPassword) < 6) {
-        echo '<script>alert("New password should be at least 6 characters long."); window.location.href = "../users-profile.php";</script>';
-        exit;
-    }
-
-    // Connect DB
-    $conn = mysqli_connect("localhost", "root", "", "asimos");
-    if (!$conn) {
-        die("Connection failed: " . mysqli_connect_error());
-    }
-
-    // Use session ID as the source of truth
-    $id = mysqli_real_escape_string($conn, $sessionId);
-    $usernameEsc = mysqli_real_escape_string($conn, $username);
-    $currentEsc  = mysqli_real_escape_string($conn, $currentPassword);
-    $newEsc      = mysqli_real_escape_string($conn, $newPassword);
-
-    // Check old password
-    $checkSql = "SELECT password FROM user_login WHERE id = '$id' AND name = '$usernameEsc' LIMIT 1";
-    $result   = mysqli_query($conn, $checkSql);
-
-    if ($result && mysqli_num_rows($result) === 1) {
-        $row         = mysqli_fetch_assoc($result);
-        $oldPassword = $row["password"];
-
-        // NOTE: passwords are stored in plain text right now
-        if ($oldPassword !== $currentEsc) {
-            echo '<script>alert("Current password is incorrect."); window.location.href = "../users-profile.php";</script>';
-        } else {
-            // Update password
-            $updateSql = "UPDATE user_login SET password = '$newEsc' WHERE id = '$id' AND name = '$usernameEsc'";
-            if (mysqli_query($conn, $updateSql)) {
-                echo '<script>alert("Password updated successfully."); window.location.href = "../users-profile.php";</script>';
-            } else {
-                echo '<script>alert("Error updating password. Please try again."); window.location.href = "../users-profile.php";</script>';
-            }
-        }
-    } else {
-        echo '<script>alert("User not found or session mismatch."); window.location.href = "../users-profile.php";</script>';
-    }
-
-    mysqli_close($conn);
-
-} else {
-    // Invalid access
-    header("Location: ../error-404.html");
+function change_password_redirect(string $message, string $path): void {
+    $url = app_url($path);
+    echo '<script>alert(' . json_encode($message) . '); window.location.href = ' . json_encode($url) . ';</script>';
     exit;
 }
-?>
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['id'], $_SESSION['name'])) {
+    header('Location: ' . app_url('index.php'));
+    exit;
+}
+
+$sessionId       = (string)$_SESSION['id'];
+$username        = (string)$_SESSION['name'];
+$postedId        = trim((string)($_POST['id'] ?? ''));
+$currentPassword = (string)($_POST['currentPassword'] ?? '');
+$newPassword     = (string)($_POST['newPassword'] ?? '');
+$confirmPassword = (string)($_POST['confirmPassword'] ?? '');
+$profilePath     = 'users-profile.php';
+
+if ($newPassword === '' || $currentPassword === '' || $confirmPassword === '') {
+    change_password_redirect('All fields are required.', $profilePath);
+}
+
+if ($newPassword !== $confirmPassword) {
+    change_password_redirect('New password and confirm password do not match.', $profilePath);
+}
+
+if (strlen($newPassword) < 6) {
+    change_password_redirect('New password should be at least 6 characters long.', $profilePath);
+}
+
+if ($postedId !== '' && $postedId !== $sessionId) {
+    change_password_redirect('User not found or session mismatch.', $profilePath);
+}
+
+$conn = db_mysqli();
+$stmt = $conn->prepare('SELECT password FROM user_login WHERE id = ? AND name = ? LIMIT 1');
+$stmt->bind_param('ss', $sessionId, $username);
+$stmt->execute();
+$row = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+
+if (!$row) {
+    change_password_redirect('User not found or session mismatch.', $profilePath);
+}
+
+if (!app_password_verify($currentPassword, (string)$row['password'])) {
+    change_password_redirect('Current password is incorrect.', $profilePath);
+}
+
+$newHash = app_password_hash($newPassword);
+$update = $conn->prepare('UPDATE user_login SET password = ? WHERE id = ? AND name = ?');
+$update->bind_param('sss', $newHash, $sessionId, $username);
+
+if ($update->execute()) {
+    change_password_redirect('Password updated successfully.', $profilePath);
+}
+
+change_password_redirect('Error updating password. Please try again.', $profilePath);

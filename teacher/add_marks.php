@@ -1,18 +1,89 @@
 <?php
-session_start();
+require_once __DIR__ . '/includes/teacher_auth.php';
 
-/* ---------------- AUTH ---------------- */
-if (!isset($_SESSION['id'])) {
-    header("Location: /Asimos/index.php");
-    exit;
-}
+$teacher_id = $teacherId;
+$saveMessage = '';
+$saveMessageType = '';
 
-$teacher_id = $_SESSION['id'];
+$conn = db_mysqli();
 
-/* ---------------- DB ---------------- */
-$conn = new mysqli("localhost", "root", "", "asimos");
-if ($conn->connect_error) {
-    die("DB connection failed");
+/* ---------------- POST: save marks ---------------- */
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $standard = trim((string)($_POST['standard'] ?? ''));
+    $section  = trim((string)($_POST['section'] ?? ''));
+    $testName = trim((string)($_POST['exam_name'] ?? ''));
+    $target   = (string)($_POST['target'] ?? 'class');
+    $marksData = $_POST['marks'] ?? [];
+    $today    = date('Y-m-d');
+
+    if ($standard === '' || $section === '' || $testName === '') {
+        $saveMessage = 'Class, section, and exam name are required.';
+        $saveMessageType = 'danger';
+    } else {
+        $studentIds = [];
+        if ($target === 'student') {
+            $sid = trim((string)($_POST['student_id'] ?? ''));
+            if ($sid !== '') {
+                $studentIds[] = $sid;
+            }
+        } else {
+            $stmt = $conn->prepare('SELECT id FROM student_info WHERE standard = ? AND section = ?');
+            $stmt->bind_param('ss', $standard, $section);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            while ($row = $res->fetch_assoc()) {
+                $studentIds[] = (string)$row['id'];
+            }
+            $stmt->close();
+        }
+
+        $saved = 0;
+        foreach ($studentIds as $studentId) {
+            foreach ($marksData as $subjectName => $vals) {
+                $obtained = trim((string)($vals['obtained'] ?? ''));
+                $total    = trim((string)($vals['total'] ?? ''));
+                if ($obtained === '' && $total === '') {
+                    continue;
+                }
+
+                $chk = $conn->prepare(
+                    'SELECT 1 FROM marks WHERE id = ? AND subjectName = ? AND testName = ? LIMIT 1'
+                );
+                $chk->bind_param('sss', $studentId, $subjectName, $testName);
+                $chk->execute();
+                $exists = $chk->get_result()->num_rows > 0;
+                $chk->close();
+
+                if ($exists) {
+                    $upd = $conn->prepare(
+                        'UPDATE marks SET marksObtained = ?, totalMarks = ?, date = ? WHERE id = ? AND subjectName = ? AND testName = ?'
+                    );
+                    $upd->bind_param('ssssss', $obtained, $total, $today, $studentId, $subjectName, $testName);
+                    if ($upd->execute()) {
+                        $saved++;
+                    }
+                    $upd->close();
+                } else {
+                    $ins = $conn->prepare(
+                        'INSERT INTO marks (id, subjectName, testName, date, marksObtained, totalMarks) VALUES (?, ?, ?, ?, ?, ?)'
+                    );
+                    $ins->bind_param('ssssss', $studentId, $subjectName, $testName, $today, $obtained, $total);
+                    if ($ins->execute()) {
+                        $saved++;
+                    }
+                    $ins->close();
+                }
+            }
+        }
+
+        if ($saved > 0) {
+            $saveMessage = 'Marks saved successfully.';
+            $saveMessageType = 'success';
+        } else {
+            $saveMessage = 'No marks were saved. Enter at least one subject mark.';
+            $saveMessageType = 'warning';
+        }
+    }
 }
 
 /* ---------------- AJAX ---------------- */
@@ -55,46 +126,23 @@ if (isset($_GET['action'])) {
         exit;
     }
 }
+
+$pageTitle = 'Add Marks';
+include __DIR__ . '/includes/teacher_header.php';
 ?>
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Add Marks</title>
-    <link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="../assets/css/style.css" rel="stylesheet">
-
-<script>
-function loadSections() {
-    fetch(`add_marks.php?action=sections&standard=${standard.value}`)
-        .then(r => r.text()).then(d => section.innerHTML = d);
-}
-
-function loadStudents() {
-    fetch(`add_marks.php?action=students&standard=${standard.value}&section=${section.value}`)
-        .then(r => r.text()).then(d => student.innerHTML = d);
-
-    fetch(`add_marks.php?action=subjects`)
-        .then(r => r.text()).then(d => document.getElementById("marksBox").innerHTML = d);
-}
-
-function toggleStudent(v) {
-    document.getElementById("studentBox").style.display =
-        (v === 'student') ? 'block' : 'none';
-}
-</script>
-</head>
-
-<?php include "includes/teacher_header.php"; ?>
 <aside id="sidebar" class="sidebar">
   <div id="sidebar-container"></div>
-  <script src="../teacher/includes/loadteacherSidebar.js"></script>
+  <script src="<?= e(app_url('teacher/includes/loadteacherSidebar.js')) ?>"></script>
 </aside>
 
-<body>
 <main id="main" class="main">
 <div class="container mt-4">
 
 <h4>Add Marks</h4>
+
+<?php if ($saveMessage !== ''): ?>
+<div class="alert alert-<?= e($saveMessageType) ?>"><?= e($saveMessage) ?></div>
+<?php endif; ?>
 
 <form method="POST">
 
@@ -148,5 +196,25 @@ function toggleStudent(v) {
 
 </div>
 </main>
-</body>
-</html>
+
+<script>
+function loadSections() {
+    fetch(`add_marks.php?action=sections&standard=${standard.value}`)
+        .then(r => r.text()).then(d => section.innerHTML = d);
+}
+
+function loadStudents() {
+    fetch(`add_marks.php?action=students&standard=${standard.value}&section=${section.value}`)
+        .then(r => r.text()).then(d => student.innerHTML = d);
+
+    fetch(`add_marks.php?action=subjects`)
+        .then(r => r.text()).then(d => document.getElementById("marksBox").innerHTML = d);
+}
+
+function toggleStudent(v) {
+    document.getElementById("studentBox").style.display =
+        (v === 'student') ? 'block' : 'none';
+}
+</script>
+
+<?php include __DIR__ . '/includes/teacher_footer.php'; ?>

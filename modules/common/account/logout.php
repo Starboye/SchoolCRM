@@ -1,43 +1,5 @@
 <?php
-// Start the session
-session_start();
+declare(strict_types=1);
 
-/*
- |------------------------------------------------------------
- | 1. Unset all session variables
- |------------------------------------------------------------
- */
-$_SESSION = [];
-
-/*
- |------------------------------------------------------------
- | 2. Destroy the session cookie (important for full logout)
- |------------------------------------------------------------
- */
-if (ini_get("session.use_cookies")) {
-    $params = session_get_cookie_params();
-    setcookie(
-        session_name(),
-        '',
-        time() - 42000,
-        $params["path"],
-        $params["domain"],
-        $params["secure"],
-        $params["httponly"]
-    );
-}
-
-/*
- |------------------------------------------------------------
- | 3. Destroy the session completely
- |------------------------------------------------------------
- */
-session_destroy();
-
-/*
- |------------------------------------------------------------
- | 4. Redirect to login / landing page
- |------------------------------------------------------------
- */
-header("Location: /Asimos/index.php");
-exit;
+require_once __DIR__ . '/../../../config/app.php';
+app_logout();

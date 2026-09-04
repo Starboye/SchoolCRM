@@ -1,37 +1,22 @@
 <?php
-session_start();
+require_once __DIR__ . '/../includes/portal.php';
+require_login(0);
 
-if (!isset($_SESSION["access"], $_SESSION["id"], $_SESSION["name"])) {
-  header("Location: backoffice/login.php");
-  exit();
-}
+require_once __DIR__ . '/../includes/student_context.php';
+extract(student_portal_context());
 
-$currentUserId   = $_SESSION["id"];
-$currentUserName = $_SESSION["name"];
-$access          = (int)$_SESSION["access"];
+$currentUserId   = $_SESSION['id'];
+$currentUserName = $_SESSION['name'];
+$access          = (int)$_SESSION['access'];
 
-// Map access -> role
-$role = "student";
+$role = 'student';
 if ($access === 2) {
-  $role = "admin";
+  $role = 'admin';
 } elseif ($access === 1) {
-  $role = "teacher";
+  $role = 'teacher';
 }
 
-// DB connection
-$servername  = "localhost";
-$username_db = "root";
-$password_db = "";
-$dbname      = "asimos";
-
-$conn = new mysqli($servername, $username_db, $password_db, $dbname);
-if ($conn->connect_error) {
-  die("Connection failed: " . $conn->connect_error);
-}
-
-function e($str) {
-  return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
-}
+$conn = db_mysqli();
 
 // ----------------------
 // Handle create announce
@@ -197,68 +182,12 @@ if ($notifRes) {
   }
 }
 
-$conn->close();
 ?>
-<!DOCTYPE html>
-<html lang="en">
+<?php
+$pageTitle = 'Announcements';
+student_layout_start($pageTitle);
+?>
 
-<head>
-  <meta charset="utf-8">
-  <title>Announcements - Asimos</title>
-  <meta content="width=device-width, initial-scale=1.0" name="viewport">
-
-  <!-- Favicons -->
-  <link href="assets/img/favicon.png" rel="icon">
-  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
-
-  <!-- Google Fonts -->
-  <link href="https://fonts.gstatic.com" rel="preconnect">
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700|Nunito:300,400,600,700|Poppins:300,400,600,700" rel="stylesheet">
-
-  <!-- Vendor CSS Files -->
-  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
-  <link href="assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
-  <link href="assets/vendor/quill/quill.snow.css" rel="stylesheet">
-  <link href="assets/vendor/quill/quill.bubble.css" rel="stylesheet">
-  <link href="assets/vendor/remixicon/remixicon.css" rel="stylesheet">
-  <link href="assets/vendor/simple-datatables/style.css" rel="stylesheet">
-
-  <!-- Template Main CSS File -->
-  <link href="assets/css/style.css" rel="stylesheet">
-</head>
-
-<body>
-
-  <!-- ======= Header ======= -->
-  <header id="header" class="header fixed-top d-flex align-items-center">
-
-    <div class="d-flex align-items-center justify-content-between">
-      <a href="studentDashboard.php" class="logo d-flex align-items-center">
-        <img src="assets/img/logo.png" alt="">
-        <!-- <span class="d-none d-lg-block">Asimos</span> -->
-      </a>
-      <i class="bi bi-list toggle-sidebar-btn"></i>
-    </div>
-
-    <nav class="header-nav ms-auto">
-      <ul class="d-flex align-items-center">
-        <li class="nav-item dropdown pe-3">
-          <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-            <span class="d-none d-md-block dropdown-toggle ps-2"><?php echo e($currentUserName); ?></span>
-          </a>
-        </li>
-      </ul>
-    </nav>
-
-  </header><!-- End Header -->
-
-  <!-- ======= Sidebar ======= -->
-  <aside id="sidebar" class="sidebar">
-    <div id="sidebar-container"></div>
-    <script src="assets/js/loadSidebar.js"></script>
-  </aside>
-  <!-- ======= Sidebar ======= -->
 
   <main id="main" class="main">
 
@@ -367,56 +296,4 @@ $conn->close();
     </section>
 
   </main><!-- End #main -->
-
-  <!-- Vendor JS Files -->
-  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <script src="assets/vendor/simple-datatables/simple-datatables.js"></script>
-  <script src="assets/vendor/quill/quill.min.js"></script>
-  <script src="assets/vendor/tinymce/tinymce.min.js"></script>
-
-  <!-- Template Main JS File -->
-  <script src="assets/js/main.js"></script>
-
-  <script>
-  // Switch student/teacher dropdown based on target type
-  document.addEventListener("DOMContentLoaded", function() {
-    const targetType   = document.getElementById("target_type");
-    const receiverWrap = document.getElementById("receiver-wrapper");
-    const receiverId   = document.getElementById("receiver_id");
-    const receiverLbl  = document.getElementById("receiver-label");
-
-    if (!targetType || !receiverWrap || !receiverId || !receiverLbl) return;
-
-    const studentsOptionsHTML = receiverId.innerHTML;
-    const teachersOptionsHTML = `
-      <option value="">-- Choose --</option>
-      <?php foreach ($teachers as $t): ?>
-        <option value="<?php echo e($t['id']); ?>">
-          <?php echo e($t['id']); ?> - <?php echo e($t['name']); ?>
-        </option>
-      <?php endforeach; ?>
-    `;
-
-    function updateReceiverField() {
-      const val = targetType.value;
-      if (val === "student") {
-        receiverWrap.style.display = "block";
-        receiverLbl.textContent = "Select Student";
-        receiverId.innerHTML = studentsOptionsHTML;
-      } else if (val === "teacher") {
-        receiverWrap.style.display = "block";
-        receiverLbl.textContent = "Select Teacher";
-        receiverId.innerHTML = teachersOptionsHTML;
-      } else {
-        receiverWrap.style.display = "none";
-        receiverId.value = "";
-      }
-    }
-
-    updateReceiverField();
-    targetType.addEventListener("change", updateReceiverField);
-  });
-  </script>
-
-</body>
-</html>
+<?php student_layout_end(); ?>

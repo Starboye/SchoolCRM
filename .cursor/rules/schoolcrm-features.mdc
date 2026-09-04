@@ -1,0 +1,76 @@
+---
+description: Feature matrix — pages, roles, DB tables, status
+alwaysApply: false
+---
+
+# Feature matrix
+
+Status: **Working** = production-ready for normal use; **Partial** = works with known limits.
+
+## Auth & account
+
+| Page | Role | DB tables | Status | Notes |
+|------|------|-----------|--------|-------|
+| `index.php` | All | `user_login`, `login_audit` | Working | POST to `backoffice/login.php` |
+| `logout.php` | All | — | Working | `app_logout()` |
+| `modules/common/account/changePassword.php` | Student | `user_login` | Working | `app_password_verify` / `app_password_hash` |
+| `backoffice/changePassword.php` | All (profile form) | `user_login` | Working | Prepared statements + hashing |
+| `modules/common/account/users-profile.php` | Student | `student_info`, `user_login` | Working | |
+
+## Student portal (root wrappers → `modules/`)
+
+| Page | Role | DB tables | Status | Notes |
+|------|------|-----------|--------|-------|
+| `studentDashboard.php` | Student | `student_info`, `notification`, `attendance`, `marks_new` | Working | `require_login(0)`, `partials/sidebar.php` |
+| `FeeDetails.php` | Student | `fee_structures`, `student_fee_status` | Working | Read-only; admin sets fees in `admin/fees.php` |
+| `TimeTable.php` | Student | `timetable_slots`, `class_timetables` | Working | Read-only when admin-approved |
+| `reportCard.php` | Student | `marks_new`, `student_info` | Working | Terms 1–3 |
+| `reportCard_pdf.php` | Student | `marks_new`, `student_info` | Working | Dompdf |
+| `homework.php` | Student | `homeworks` | Working | Date navigation |
+| `announcements.php` | Student | `notification` | Working | |
+| `student/login.php` | — | — | Retired | Redirects to `index.php` |
+
+## Teacher portal
+
+| Page | Role | DB tables | Status | Notes |
+|------|------|-----------|--------|-------|
+| `teacher/dashboard.php` | Teacher | `homeworks`, `attendance`, `notification`, `teacher_subject_allocation` | Working | Graceful if `exams` missing |
+| `teacher/attendance.php` | Teacher | `attendance`, `teacher_subject_allocation` | Working | Scoped to allocated classes |
+| `forms/updateAttendanceAjax.php` | Teacher | `attendance` | Working | Auth + scope check |
+| `teacher/add_homework.php` | Teacher | `homeworks` | Working | |
+| `teacher/add_marks.php` | Teacher | `marks` | Working | POST save; aligns with manage view |
+| `teacher/marks_manage.php` | Teacher | `marks`, `teacher_subject_allocation` | Working | |
+| `teacher/add_announcement.php` | Teacher | `notification` | Working | |
+| `teacher/view_studentData.php` | Teacher | `student_info`, `marks`, `attendance`, `homeworks` | Working | AJAX auth; scoped students |
+| `teacher/exam_timetable.php` | Teacher | `timetable_slots` | Working | Empty state if no slots |
+
+## Admin portal
+
+| Page | Role | Permission key | DB tables | Status |
+|------|------|----------------|-----------|--------|
+| `admin/dashboard.php` | Admin | — | various | Working |
+| `admin/students.php` | Admin | `can_manage_users` | `student_info`, `user_login` | Working |
+| `admin/teachers.php` | Admin | `can_manage_users` | `teacher_info`, `user_login` | Working |
+| `admin/attendance.php` | Admin | — | `attendance` | Working |
+| `admin/homework.php` | Admin | — | `homeworks` | Working |
+| `admin/marks.php` | Admin | `can_edit_marks` | `marks_new` | Working | Report card source |
+| `admin/planner.php` | Admin | `can_manage_planner` | `timetable_slots`, `class_teacher_assignments`, `class_timetables` | Working |
+| `admin/fees.php` | Admin | `can_manage_fees` | `fee_structures`, `student_fee_status` | Working |
+| `teacher/class_timetable.php` | Teacher | — | `timetable_slots`, `class_timetables` | Working | Class teacher draft → submit → locked when approved |
+| `admin/notification_center.php` | Admin | `can_manage_notifications` | `notification` | Working |
+| `admin/exams.php` | Admin | `can_manage_exams` | `exam_windows`, `exams` | Partial | Needs schema applied |
+| `admin/analytics.php` | Admin | `can_view_analytics` | various | Partial |
+| `admin/security.php` | Admin | `can_manage_security` | `login_audit`, `user_security` | Partial | Needs admin_controls.sql |
+
+## Marks data model (intentional split)
+
+- **`marks`** — per-subject rows from teacher **Enter Marks** / **Manage Marks**.
+- **`marks_new`** — denormalized term row (`english`, `tamil`, …) for **report cards**; admin **Marks** page.
+
+Unifying these is a future enhancement; both are documented here.
+
+## Retired paths
+
+- `student/*.php` → redirect stubs to main portal
+- `adminDashboard.php`, `teachersDashboard.php` → redirect to `admin/dashboard.php`, `teacher/dashboard.php`
+- Root NiceAdmin `*.html` demos — not application routes

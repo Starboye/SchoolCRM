@@ -1,61 +1,61 @@
 <?php
-session_start();
+require_once __DIR__ . '/includes/teacher_auth.php';
 
-// DB Connection
-$db = mysqli_connect("localhost", "root", "", "asimos");
-if(!$db){ die("DB failed"); }
+$conn = db_mysqli();
+$teacher_id = $teacherId;
+$date = isset($_GET['date']) ? (string)$_GET['date'] : date('Y-m-d');
+$session = isset($_GET['session']) ? (string)$_GET['session'] : '';
 
-$teacher_id = $_SESSION['id']; 
-$date = isset($_GET['date']) ? $_GET['date'] : date("Y-m-d");
-$session = isset($_GET['session']) ? $_GET['session'] : "";
+$pageTitle = 'Attendance';
+include __DIR__ . '/includes/teacher_header.php';
 ?>
+<aside id="sidebar" class="sidebar">
+  <div id="sidebar-container"></div>
+  <script src="<?= e(app_url('teacher/includes/loadteacherSidebar.js')) ?>"></script>
+</aside>
 
-<?php include "includes/teacher_header.php"; ?>
-  <!-- ======= Sidebar ======= -->
-  <aside id="sidebar" class="sidebar">
-    <div id="sidebar-container"></div>
-    <script src="../teacher/includes/loadteacherSidebar.js"></script>
-  </aside>
-  <!-- ======= Sidebar ======= -->
+<main id="main" class="main">
 <div class="container mt-4">
 
 <h3>Realtime Attendance</h3>
 <hr>
 
-<!-- FILTER FORM -->
 <form method="GET">
-
     <label>Date</label>
-    <input type="date" name="date" class="form-control" 
-    value="<?= $date; ?>" required>
+    <input type="date" name="date" class="form-control" value="<?= e($date) ?>" required>
 
     <label class="mt-3">Session</label>
     <select name="session" class="form-control" required>
         <option value="">-- choose --</option>
-        <option value="morning"   <?= ($session=="morning")?"selected":""; ?>>Morning</option>
-        <option value="afternoon" <?= ($session=="afternoon")?"selected":""; ?>>Afternoon</option>
-        <option value="evening"   <?= ($session=="evening")?"selected":""; ?>>Evening</option>
+        <option value="morning" <?= $session === 'morning' ? 'selected' : '' ?>>Morning</option>
+        <option value="afternoon" <?= $session === 'afternoon' ? 'selected' : '' ?>>Afternoon</option>
+        <option value="evening" <?= $session === 'evening' ? 'selected' : '' ?>>Evening</option>
     </select>
 
     <button class="btn btn-primary mt-3">Load Students</button>
 </form>
 
-
 <?php
-if($session != "")
-{
+if ($session !== '') {
     $studentQuery = "
-        SELECT DISTINCT id, name 
-        FROM student_info 
-        ORDER BY name;
+        SELECT DISTINCT si.id, si.name
+        FROM student_info si
+        INNER JOIN teacher_subject_allocation tsa
+          ON tsa.standard = si.standard
+         AND tsa.section = si.section
+         AND tsa.teacher_id = ?
+        ORDER BY si.name
     ";
-    $studentResult = mysqli_query($db, $studentQuery);
-
-    echo "<hr>";
+    $stmt = $conn->prepare($studentQuery);
+    $stmt->bind_param('s', $teacher_id);
+    $stmt->execute();
+    $studentResult = $stmt->get_result();
+    echo '<hr>';
+    if ($studentResult->num_rows === 0) {
+        echo '<div class="alert alert-info">No students found for your allocated classes.</div>';
+    } else {
 ?>
-
 <table class="table table-bordered mt-3">
-
 <thead>
 <tr>
     <th>Student</th>
@@ -63,83 +63,54 @@ if($session != "")
     <th>Status</th>
 </tr>
 </thead>
-
 <tbody>
-
-<?php while($s = mysqli_fetch_assoc($studentResult)){ ?>
-
-<tr id="row<?= $s['id']; ?>">
-
-<td><?= $s['name']; ?></td>
-
+<?php while ($s = $studentResult->fetch_assoc()): ?>
+<tr id="row<?= e((string)$s['id']) ?>">
+<td><?= e((string)$s['name']) ?></td>
 <td>
-
-<button class="btn btn-success btn-sm"
-onclick="markAttendance('<?= $s['id']; ?>',1)">
-P
-</button>
-
-<button class="btn btn-danger btn-sm"
-onclick="markAttendance('<?= $s['id']; ?>',0)">
-A
-</button>
-
+<button class="btn btn-success btn-sm" onclick="markAttendance('<?= e((string)$s['id']) ?>',1)">P</button>
+<button class="btn btn-danger btn-sm" onclick="markAttendance('<?= e((string)$s['id']) ?>',0)">A</button>
 </td>
-
-<td id="status<?= $s['id']; ?>"></td>
-
+<td id="status<?= e((string)$s['id']) ?>"></td>
 </tr>
-
-<?php } ?>
-
+<?php endwhile; ?>
 </tbody>
-
 </table>
-
-<?php } ?>
-
+<?php
+    }
+    $stmt->close();
+}
+?>
 </div>
+</main>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
 <script>
-
-function markAttendance(student_id, status)
-{
-    // read live dropdown value
+function markAttendance(student_id, status) {
     let session = document.querySelector("select[name='session']").value;
     let date    = document.querySelector("input[name='date']").value;
-
-    if(session === ""){
+    if (session === '') {
         alert("Select session first");
         return;
     }
-
     $.ajax({
-        url: "../forms/updateAttendanceAjax.php",
+        url: "<?= e(app_url('forms/updateAttendanceAjax.php')) ?>",
         type: "POST",
-        data: {
-            student_id: student_id,
-            status: status,
-            session: session,
-            date: date
-        },
-        success:function(response){
-
-            if(status == 1){
-                document.getElementById("status"+student_id).innerHTML =
+        data: { student_id: student_id, status: status, session: session, date: date },
+        success: function() {
+            if (status == 1) {
+                document.getElementById("status" + student_id).innerHTML =
                     "<span style='color:green;font-weight:bold;'>Present</span>";
             } else {
-                document.getElementById("status"+student_id).innerHTML =
+                document.getElementById("status" + student_id).innerHTML =
                     "<span style='color:red;font-weight:bold;'>Absent</span>";
             }
-
+        },
+        error: function() {
+            alert("Failed to save attendance. Please sign in again.");
         }
     });
-
 }
-
 </script>
 
-
-<?php include "includes/teacher_footer.php"; ?>
+<?php include __DIR__ . '/includes/teacher_footer.php'; ?>

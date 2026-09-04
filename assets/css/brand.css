@@ -1,0 +1,338 @@
+/* CampusToday brand — header logos, login, post-login boot screen */
+
+.app-brand {
+  gap: 0.5rem;
+  min-height: 0;
+  align-items: center;
+  background: transparent !important;
+}
+
+/* Header logo — vertically center inside 60px NiceAdmin header */
+.header > .d-flex.align-items-center {
+  height: 100%;
+  align-items: center !important;
+}
+
+.header .logo.app-brand {
+  display: flex;
+  align-items: center;
+  height: 60px;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
+  background: transparent !important;
+  width: auto !important;
+}
+
+.header .logo.app-brand img {
+  margin: 0 !important;
+  vertical-align: middle;
+  background: transparent !important;
+}
+
+.header .app-brand-wide {
+  height: 56px;
+  background: transparent !important;
+}
+
+.header .app-brand-wide img {
+  max-height: 56px !important;
+  height: 56px !important;
+  width: auto !important;
+  max-width: min(440px, 58vw) !important;
+  object-fit: contain;
+  object-position: left center;
+  display: block;
+  background: transparent !important;
+}
+
+.app-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: 8px;
+  overflow: visible;
+  background: transparent !important;
+}
+
+.app-brand-mark img {
+  width: auto;
+  height: auto;
+  max-width: 44px;
+  max-height: 44px;
+  object-fit: contain;
+  object-position: center;
+  margin: 0;
+  display: block;
+  background: transparent !important;
+}
+
+.app-brand-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  border: 1px dashed #4154f1;
+  background: #f6f9ff;
+  color: #012970;
+  font-family: "Nunito", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.app-brand-name {
+  font-size: 18px !important;
+  font-weight: 700;
+  color: #012970;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.app-brand-wide {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: 56px;
+  line-height: 0;
+  background: transparent !important;
+}
+
+.app-brand-wide img {
+  max-height: 56px;
+  width: auto;
+  max-width: min(440px, 58vw);
+  object-fit: contain;
+  object-position: left center;
+  margin: 0;
+  display: block;
+  background: transparent !important;
+}
+
+/* Login page — large transparent PNG logo */
+.login-brand-wrap {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0.5rem 0 1rem;
+  background: transparent;
+}
+
+.app-brand-login {
+  width: 100%;
+  justify-content: center;
+  padding: 0;
+  background: transparent !important;
+}
+
+.app-brand-login img {
+  max-width: min(820px, 98vw) !important;
+  max-height: none !important;
+  width: 100% !important;
+  height: auto !important;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto !important;
+  background: transparent !important;
+}
+
+/* Override NiceAdmin .logo constraints */
+.logo.app-brand-login img {
+  max-height: none !important;
+}
+
+@media (min-width: 1200px) {
+  .header .logo.app-brand {
+    width: auto !important;
+    min-width: 0;
+    max-width: none !important;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .header .logo.app-brand {
+    height: 60px;
+  }
+
+  .app-brand-mark,
+  .app-brand-placeholder {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+
+  .app-brand-mark img {
+    max-width: 40px;
+    max-height: 40px;
+  }
+
+  .header .app-brand-wide img {
+    max-height: 48px !important;
+    height: 48px !important;
+    max-width: min(320px, 70vw) !important;
+  }
+}
+
+/* Post-login skeleton boot screen */
+.portal-boot {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.45s ease, visibility 0.45s ease;
+}
+
+.portal-boot-hide {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.portal-boot-backdrop {
+  position: absolute;
+  inset: 0;
+  background: #eef1f6;
+}
+
+.portal-boot-content {
+  position: relative;
+  z-index: 1;
+  width: min(92vw, 720px);
+  text-align: center;
+}
+
+.portal-boot-logo-wrap {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  margin: 0 auto 1.25rem;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #dce3ec;
+  box-shadow: inset 0 0 0 1px rgba(1, 39, 112, 0.06);
+}
+
+.portal-boot-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 14px;
+  display: block;
+  filter: grayscale(1) brightness(1.05);
+  opacity: 0.5;
+}
+
+.portal-boot-logo-wrap::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 15%,
+    rgba(255, 255, 255, 0.65) 48%,
+    transparent 82%
+  );
+  animation: portal-boot-shimmer 1.5s ease-in-out infinite;
+}
+
+.portal-boot-text {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin-bottom: 1.75rem;
+}
+
+.portal-boot-layout {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 1rem;
+  text-align: left;
+}
+
+.portal-boot-sidebar {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1rem 0.75rem;
+  box-shadow: 0 2px 12px rgba(1, 39, 112, 0.06);
+}
+
+.portal-boot-line {
+  height: 12px;
+  border-radius: 6px;
+  margin-bottom: 0.65rem;
+  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
+  background-size: 200% 100%;
+  animation: portal-boot-skeleton 1.4s ease-in-out infinite;
+}
+
+.portal-boot-line:last-child {
+  margin-bottom: 0;
+}
+
+.portal-boot-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.portal-boot-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.portal-boot-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(1, 39, 112, 0.06);
+  background-image: linear-gradient(90deg, #e2e8f0 0%, #f8fafc 50%, #e2e8f0 100%);
+  background-size: 200% 100%;
+  animation: portal-boot-skeleton 1.4s ease-in-out infinite;
+}
+
+.portal-boot-card-lg {
+  height: 72px;
+}
+
+.portal-boot-card-md {
+  height: 100px;
+}
+
+.portal-boot-card-sm {
+  height: 56px;
+}
+
+@keyframes portal-boot-shimmer {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(120%); }
+}
+
+@keyframes portal-boot-skeleton {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (max-width: 575px) {
+  .portal-boot-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .portal-boot-sidebar {
+    display: none;
+  }
+
+  .portal-boot-row {
+    grid-template-columns: 1fr;
+  }
+
+  .app-brand-login img {
+    max-width: 98vw !important;
+  }
+}

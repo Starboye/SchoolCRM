@@ -1,90 +1,53 @@
 <?php
-session_start();
-include "includes/teacher_header.php";
+$pageTitle = 'Dashboard';
+include __DIR__ . '/includes/teacher_header.php';
+
+$conn = db_mysqli();
+$teacherId = (string)$_SESSION['id'];
+$today = date('Y-m-d');
+
+function dash_count(mysqli $conn, string $sql): int {
+    $res = $conn->query($sql);
+    if (!$res) {
+        return 0;
+    }
+    $row = $res->fetch_assoc();
+    return (int)($row['c'] ?? 0);
+}
+
+$tid = $conn->real_escape_string($teacherId);
+$hwCount = dash_count($conn, "SELECT COUNT(*) AS c FROM homeworks WHERE teacher_id = '$tid'");
+$attCount = dash_count($conn, "SELECT COUNT(*) AS c FROM attendance WHERE markedBy = '$tid' AND date = '$today'");
+$annCount = dash_count($conn, "SELECT COUNT(*) AS c FROM notification WHERE id = '$tid' AND status = 0");
+
+$scheduleQ = $conn->query("SELECT DISTINCT standard, section FROM teacher_subject_allocation WHERE teacher_id = '$tid'");
+if (!$scheduleQ) {
+    $scheduleQ = false;
+}
+
+$pendingAttendance = dash_count($conn,
+    "SELECT COUNT(*) AS c FROM teacher_subject_allocation tsa
+     WHERE tsa.teacher_id = '$tid'
+       AND NOT EXISTS (SELECT 1 FROM attendance a WHERE a.date = '$today' AND a.markedBy = '$tid')"
+);
+
+$pendingMarks = 0;
+if (db_table_exists($conn, 'exams') && db_table_exists($conn, 'marks_master')) {
+    $pendingMarks = dash_count($conn,
+        "SELECT COUNT(*) AS c FROM exams e
+         WHERE e.created_by = '$tid'
+           AND NOT EXISTS (SELECT 1 FROM marks_master mm WHERE mm.exam_id = e.exam_id)"
+    );
+}
 ?>
 
 <!-- ======= Sidebar ======= -->
 <aside id="sidebar" class="sidebar">
   <div id="sidebar-container"></div>
-  <script src="../teacher/includes/loadteacherSidebar.js"></script>
+  <script src="<?= e(app_url('teacher/includes/loadteacherSidebar.js')) ?>"></script>
 </aside>
-<!-- ======= Sidebar ======= -->
 
 <main id="main" class="main">
-
-<?php
-// DB Connection
-$conn = new mysqli("localhost", "root", "", "asimos");
-if ($conn->connect_error) {
-    die("DB Connection failed");
-}
-
-$teacherId = $_SESSION['id'];
-$today = date("Y-m-d");
-
-/* =========================
-   TOP METRICS
-   ========================= */
-
-// Homeworks assigned
-$hwCount = $conn->query("
-    SELECT COUNT(*) AS c 
-    FROM homeworks 
-    WHERE teacher_id = '$teacherId'
-")->fetch_assoc()['c'];
-
-// Attendance marked today
-$attCount = $conn->query("
-    SELECT COUNT(*) AS c 
-    FROM attendance 
-    WHERE markedBy = '$teacherId' 
-      AND date = '$today'
-")->fetch_assoc()['c'];
-
-// Announcements sent
-$annCount = $conn->query("
-    SELECT COUNT(*) AS c 
-    FROM notification 
-    WHERE id = '$teacherId' 
-      AND status = 0
-")->fetch_assoc()['c'];
-
-/* =========================
-   TODAY'S CLASSES (SAFE)
-   ========================= */
-$scheduleQ = $conn->query("
-    SELECT DISTINCT standard, section
-    FROM teacher_subject_allocation
-    WHERE teacher_id = '$teacherId'
-");
-
-/* =========================
-   PENDING TASKS
-   ========================= */
-
-// Pending attendance
-$pendingAttendance = $conn->query("
-    SELECT COUNT(*) AS c
-    FROM teacher_subject_allocation tsa
-    WHERE tsa.teacher_id = '$teacherId'
-      AND NOT EXISTS (
-        SELECT 1 FROM attendance a
-        WHERE a.date = '$today'
-          AND a.markedBy = '$teacherId'
-      )
-")->fetch_assoc()['c'];
-
-// Pending marks
-$pendingMarks = $conn->query("
-    SELECT COUNT(*) AS c
-    FROM exams e
-    WHERE e.created_by = '$teacherId'
-      AND NOT EXISTS (
-        SELECT 1 FROM marks_master mm
-        WHERE mm.exam_id = e.exam_id
-      )
-")->fetch_assoc()['c'];
-?>
 
 <!-- PAGE TITLE -->
 <div class="pagetitle">
@@ -155,9 +118,9 @@ $pendingMarks = $conn->query("
       <div class="card-body">
         <h5 class="card-title">📅 Today’s Classes</h5>
         <ul class="list-unstyled mb-0">
-          <?php if($scheduleQ->num_rows > 0){
-            while($r = $scheduleQ->fetch_assoc()){ ?>
-              <li>• Class <?= $r['standard'].$r['section']; ?></li>
+          <?php if ($scheduleQ && $scheduleQ->num_rows > 0) {
+            while ($r = $scheduleQ->fetch_assoc()) { ?>
+              <li>• Class <?= e((string)$r['standard']) ?><?= e((string)$r['section']) ?></li>
           <?php }} else { ?>
               <li>No classes assigned</li>
           <?php } ?>
@@ -194,3 +157,8 @@ $pendingMarks = $conn->query("
   </div>
 
 </div>
+
+</section>
+</main>
+
+<?php include __DIR__ . '/includes/teacher_footer.php'; ?>

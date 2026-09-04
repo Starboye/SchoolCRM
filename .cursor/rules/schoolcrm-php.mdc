@@ -1,0 +1,51 @@
+---
+description: PHP layout and connection conventions for this codebase
+globs: "**/*.php"
+alwaysApply: false
+---
+
+# PHP conventions
+
+## Layout
+
+- Admin pages: `require_once __DIR__ . '/includes/bootstrap.php';` then `include` `header.php` + `sidebar.php`; close with `footer.php`. Escape with `e()`.
+- Teacher pages: `require_once __DIR__ . '/includes/teacher_auth.php';` (enforces `access=1`), then `teacher_header.php`, content, `teacher_footer.php`. Sidebar via `loadteacherSidebar.js` + `teacher/includes/sidebar.html`.
+- Student pages: root wrapper (`studentDashboard.php`, etc.) includes `modules/...`. Module PHP starts with `require_once __DIR__ . '/../includes/portal.php';` then `require_login(0)`. Layout: inline header HTML or `partials/header.php` + **`partials/sidebar.php`** (preferred over fetch).
+
+## Config & URLs
+
+- Always load `config/db.php` (pulls in `config/app.php`).
+- Links and redirects: **`app_url('path.php')`**, never hardcoded `/Asimos/` or bare `../index.php`.
+- Unauthenticated: **`require_login($access)`** → `app_url('index.php')`. Wrong role → HTTP 403.
+- Logout: **`logout_url()`** or **`app_logout()`**.
+- `brand_head_tags()` emits `<meta name="app-base-path">` for JS sidebar loaders.
+
+## Database
+
+Prefer **`db_mysqli()`** or **`db()`** PDO from `config/db.php` for touched code. Use **`db_table_exists($conn, 'table')`** before querying optional admin schema tables.
+
+Use prepared statements for new queries. Many legacy queries still interpolate session values — fix when editing that file.
+
+## Passwords
+
+Use **`app_password_verify()`** / **`app_password_hash()`** in all password change flows. Login rehashes legacy plaintext on success (`backoffice/login.php`).
+
+## UI
+
+Assets in `assets/` (Bootstrap, icons, `assets/css/style.css`, `assets/js/main.js`). Admin/teacher use `app_url('assets/...')` or `../assets/...` from subfolders.
+
+Do not add new NiceAdmin demo HTML pages or link active PHP to `*.html` demos.
+
+## Teacher routes (present)
+
+- `teacher/marks_manage.php` — list marks for teacher's classes
+- `teacher/exam_timetable.php` — reads `timetable_slots`
+- `teacher/add_marks.php` — POST saves to **`marks`** table
+
+## PDF
+
+`modules/student/academic/reportCard_pdf.php` loads `dompdf-3.1.4/dompdf/autoload.inc.php`.
+
+## Session
+
+Main login sets `$_SESSION['id']`, `name`, `access`. `establish_user_session()` also sets `user_id` = `id` for compatibility. Do not build features on `$_SESSION['user_id']` alone.

@@ -1,18 +1,33 @@
+function appBasePath() {
+  const meta = document.querySelector('meta[name="app-base-path"]');
+  if (meta && meta.content) {
+    return meta.content.replace(/\/$/, '');
+  }
+  if (typeof window.APP_BASE_PATH !== 'undefined') {
+    return String(window.APP_BASE_PATH).replace(/\/$/, '');
+  }
+  const dataEl = document.getElementById('sidebar-container');
+  if (dataEl && dataEl.dataset.basePath) {
+    return dataEl.dataset.basePath.replace(/\/$/, '');
+  }
+  return '';
+}
+
 async function loadSidebar() {
-  const container = document.getElementById("sidebar-container");
+  const container = document.getElementById('sidebar-container');
   if (!container) return;
 
-  // Try absolute + relative paths
+  const base = appBasePath();
   const paths = [
-    "/Asimos/includes/sidebar.html",
-    "includes/sidebar.html",
-    "../includes/sidebar.html",
-    "../../includes/sidebar.html"
-  ];
+    base ? `${base}/includes/sidebar.html` : '',
+    'includes/sidebar.html',
+    '../includes/sidebar.html',
+    '../../includes/sidebar.html',
+  ].filter(Boolean);
 
-  for (const p of paths) {
+  for (const path of paths) {
     try {
-      const res = await fetch(p);
+      const res = await fetch(path);
       if (res.ok) {
         const html = await res.text();
         if (html.trim().length > 0) {
@@ -20,10 +35,12 @@ async function loadSidebar() {
           return;
         }
       }
-    } catch(e) { /* ignore & continue */ }
+    } catch (e) {
+      /* try next path */
+    }
   }
 
-  console.error("Sidebar failed to load.");
+  console.error('Sidebar failed to load.');
 }
 
-document.addEventListener("DOMContentLoaded", loadSidebar);
+document.addEventListener('DOMContentLoaded', loadSidebar);

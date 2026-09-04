@@ -1,7 +1,6 @@
 <?php
-// Backward-compatible entrypoint for legacy admin URL.
-// Render dashboard directly to avoid redirect/path issues across environments.
-require_once __DIR__ . '/../admin/dashboard.php';
-// Backward-compatible entrypoint for legacy redirect targets.
-header('Location: ../admin/dashboard.php');
+declare(strict_types=1);
+
+require_once __DIR__ . '/../config/app.php';
+header('Location: ' . app_url('admin/dashboard.php'), true, 302);
 exit;

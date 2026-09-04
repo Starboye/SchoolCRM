@@ -1,2 +1,5 @@
 <?php
-require __DIR__ . '/modules/common/account/logout.php';
+declare(strict_types=1);
+
+require_once __DIR__ . '/config/app.php';
+app_logout();

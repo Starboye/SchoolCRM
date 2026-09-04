@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
-session_start();
-session_unset();
-session_destroy();
-header('Location: /student/login.php');
-?>
+
+require_once __DIR__ . '/../config/db.php';
+
+header('Location: ' . app_url('logout.php'), true, 302);
+exit;

@@ -6,6 +6,7 @@
     <li class="nav-item"><a class="nav-link collapsed" href="attendance.php"><i class="bi bi-calendar-check"></i><span>Attendance</span></a></li>
     <li class="nav-item"><a class="nav-link collapsed" href="homework.php"><i class="bi bi-journal-text"></i><span>Homework</span></a></li>
     <li class="nav-item"><a class="nav-link collapsed" href="marks.php"><i class="bi bi-bar-chart"></i><span>Marks</span></a></li>
+    <li class="nav-item"><a class="nav-link collapsed" href="fees.php"><i class="bi bi-cash-coin"></i><span>Fee Structure</span></a></li>
     <li class="nav-item"><a class="nav-link collapsed" href="permissions.php"><i class="bi bi-shield-lock"></i><span>RBAC</span></a></li>
     <li class="nav-item"><a class="nav-link collapsed" href="approvals.php"><i class="bi bi-check2-square"></i><span>Approvals</span></a></li>
     <li class="nav-item"><a class="nav-link collapsed" href="bulk_ops.php"><i class="bi bi-upload"></i><span>Bulk Ops</span></a></li>
@@ -17,7 +18,5 @@
     <li class="nav-item"><a class="nav-link collapsed" href="security.php"><i class="bi bi-key"></i><span>Security</span></a></li>
     <li class="nav-item"><a class="nav-link collapsed" href="data_quality.php"><i class="bi bi-clipboard2-check"></i><span>Data Quality</span></a></li>
     <li class="nav-item"><a class="nav-link collapsed" href="delegation.php"><i class="bi bi-diagram-3"></i><span>Delegation</span></a></li>
-    <li class="nav-item"><a class="nav-link collapsed" href="../announcements.php"><i class="bi bi-broadcast"></i><span>Legacy Notices</span></a></li>
-    <li class="nav-item"><a class="nav-link collapsed" href="../announcements.php"><i class="bi bi-megaphone"></i><span>Announcements</span></a></li>
   </ul>
 </aside>

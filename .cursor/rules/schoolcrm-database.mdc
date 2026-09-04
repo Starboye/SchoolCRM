@@ -1,0 +1,48 @@
+---
+description: Core MySQL tables and how modules use them
+alwaysApply: true
+---
+
+# Database `asimos`
+
+IDs are **varchar** (e.g. student `2017115611`, teacher `2017115610` / `T001`), not auto-increment ints. Class is `standard` (int) + `section` (char).
+
+## Core (see `asimos_db_backup_27-12-2025.sql`)
+
+- `user_login` — `id`, `name`, `password`, `access`.
+- `student_info` — profile; `id` matches `user_login.id`.
+- `teacher_info` — HR/profile; `teacher_id` / `login_id`.
+- `teacher_subject_allocation` — teacher ↔ subject ↔ class/section.
+- `attendance` — PK conceptually `(id, date)`; session columns `morning`/`afternoon`/`evening` plus older `status`/`primary_status`; `markedBy`, `teacher_id`, `subject_name`.
+- `homeworks` — class homework by subject/date/`teacher_id`.
+- `marks` — per student per subject per `testName` (e.g. Term 1).
+- `marks_new` — denormalized term row: `english`,`tamil`,`maths`,`science`,`social` (used by `reportCard.php` / PDF).
+- `assessments` — older per-test rows; `id` is student id (not unique).
+- `notification` — `id` = target, `notification` text, `sentBy`, `date`, `time`, `status`.
+
+`asimos_Sql_Schema.sql` is only homework FK leftovers, not a full schema. Apply **`admin/schema/admin_controls.sql`** for RBAC, `audit_logs`, `approval_*`, `login_audit`, `timetable_slots`, `attendance_day_lock`, `exam_windows`, `marks_revisions`, notification templates/schedules, `data_quality_issues`, `user_security`. Apply **`admin/schema/fee_structures.sql`** for `fee_structures`, `student_fee_status`, permission `can_manage_fees`. Apply **`admin/schema/timetable_workflow.sql`** for `class_teacher_assignments`, `class_timetables`, policy `timetable_submit`. (Legacy `class_sections` is a separate class catalog used by teacher forms.)
+
+## Fees (admin/schema/fee_structures.sql)
+
+- `fee_structures` — per class/section/term: `term_fee`, `special_fee`, `tuition_fee`, `lab_fee`, `total_fee`, `academic_year`. Unique `(standard, section, term_label, academic_year)`.
+- `student_fee_status` — per student per fee term: `status` (`paid`|`unpaid`|`partial`), `amount_paid`, `paid_on`. FK to `fee_structures`.
+- **Admin:** `admin/fees.php` (`can_manage_fees`) — CRUD structures + payment status.
+- **Student:** `modules/student/academic/FeeDetails.php` — read-only via `includes/fee_helpers.php`.
+
+## Timetable workflow (admin/schema/timetable_workflow.sql)
+
+- `class_teacher_assignments` — class teacher per `standard`/`section`/`academic_year`.
+- `class_timetables` — approval state: `draft`|`pending`|`approved`|`rejected`.
+- `timetable_slots` — period grid (from `admin_controls.sql`).
+- **Class teacher:** `teacher/class_timetable.php` — edit draft, submit for approval; locked after approval.
+- **Admin:** `admin/planner.php` — assign class teacher, edit/publish any class; `admin/approvals.php` — approve/reject submissions.
+- **Student:** `modules/student/academic/TimeTable.php` — read-only when status is `approved`.
+
+## Module mapping
+
+- Report card PDF: `marks_new` + Dompdf.
+- Teacher dashboard: `homeworks`, `attendance`, `notification`, `teacher_subject_allocation`.
+- Admin planner: `timetable_slots`.
+- Admin fees: `fee_structures` + `student_fee_status` (see fee schema above).
+
+SQL dumps in repo: `asimos_db_backup_27-12-2025.sql`. Import helper: `scripts/feed_sql_to_mysql.sh`.

@@ -1,0 +1,151 @@
+---
+description: Living AI checkpoint — read first, append after every session
+alwaysApply: true
+---
+
+# AI checkpoint (start here)
+
+This file is the **handoff log** for any agent or model working on SchoolCRM. Do not re-explore the whole repo from scratch. Read this, then the other `.cursor/rules/schoolcrm-*.mdc` files, then only open code you need.
+
+## Protocol (mandatory)
+
+1. **Start:** Read this file. Treat "Current checkpoint" as truth unless git/workspace contradicts it.
+2. **During work:** Prefer existing portals (`admin/`, `teacher/`, root student pages). Do not mix `$_SESSION['id']` with `$_SESSION['user_id']`.
+3. **After every user prompt that produces work, a decision, or new facts:** append a **newest-first** Work log entry (date, what happened, paths if any, leftover risk, next step). Also do this at **end of session**. Skip only empty/no-op turns (e.g. user only said "ok" with no new info).
+4. **If architecture/auth/schema changes:** also update `schoolcrm-overview.mdc`, `schoolcrm-auth.mdc`, `schoolcrm-database.mdc`, or `schoolcrm-php.mdc`.
+5. **Do not** put passwords, dumps of PII, or full SQL dumps in this file.
+
+## Current checkpoint
+
+- **Product:** Asimos school CRM, PHP 8.2 + MariaDB `asimos`, NiceAdmin UI, XAMPP-style local DB (`127.0.0.1`, user `root`, empty pass in `config/db.php` and many mysqli calls).
+- **Last knowledge pass:** 2026-09-04 — CampusToday rebrand + marketing landing page.
+- **Last code change:** `config/app.php` branding helpers, `assets/img/campustoday/`, `.env`, marketing page, `brand.css`.
+- **Git note (as of 2026-08-30):** `asimos_02-02-2026.sql` was deleted in working tree (`D` in status).
+- **Do not redo:** mapping folders, listing admin/teacher/student PHP pages, inferring access 0/1/2, discovering dual student logins.
+
+## Static knowledge index
+
+| File | Use |
+|------|-----|
+| `schoolcrm-overview.mdc` | Portals, folders, what to extend |
+| `schoolcrm-auth.mdc` | Sessions, RBAC, login pitfalls |
+| `schoolcrm-database.mdc` | Tables, report-card vs marks |
+| `schoolcrm-php.mdc` | Include patterns, PDO vs mysqli |
+| `schoolcrm-features.mdc` | Page/role/DB feature matrix |
+
+## Open items (not started unless a later log says otherwise)
+
+- Migrate remaining student/teacher pages from inline mysqli to prepared statements.
+- `backoffice/attendanceToday.php` looks incomplete.
+- Root NiceAdmin HTML demos are not app routes.
+- Optional: unify `marks` (teacher) and `marks_new` (report cards).
+- Remove `user_id` session key when all code uses `id`.
+- No project-level PHPUnit/CI.
+
+## Work log (newest first)
+
+### 2026-09-04 — Logo alignment, login size, post-login skeleton loader
+
+- **Header logos:** `brand.css` — vertical centering in 60px header; switched wide logo default to `header-light.png` (purpose-built for navbars).
+- **Login logo:** increased to max 380px width.
+- **Post-login loader:** `portal_boot_screen()` in `config/app.php`; triggered via `$_SESSION['portal_boot']` on successful login; skeleton + pulsing CampusToday logo on admin/teacher/student first page load (~1s).
+- **Paths:** `admin/includes/header.php`, `teacher/includes/teacher_header.php`, `partials/student_head.php`, `backoffice/login.php`.
+
+### 2026-09-04 — CampusToday rebrand (app + marketing)
+
+- **Assets:** Copied PNGs from `CampusToday-Asserts/` → `assets/img/campustoday/` (icon-32/48, logo-primary, horizontal-compact, header-light, white-reverse).
+- **Config:** `APP_NAME=CampusToday`; `brand_logo()` variants (`header`, `login`); `BRAND_FAVICON_PATH`, `BRAND_LOGO_WIDE_PATH`, `BRAND_LOGO_LOGIN_PATH` in `config/app.php` + `.env`.
+- **UI:** Login uses primary logo; portal headers use icon (mobile) + horizontal compact (desktop). Marketing page + `marketing/campustoday.html` redirect updated.
+- **Screenshots:** Re-captured via `scripts/capture_marketing_screenshots.mjs`.
+- **Next:** Optional rename `marketing/asimos-schoolcrm.html` → `campustoday.html` as primary file.
+
+### 2026-09-04 — Marketing landing page (single-page HTML)
+
+- **Added:** `marketing/asimos-schoolcrm.html` — inline CSS/JS, hero, audience cards, screenshot gallery with lightbox, portal feature sections (admin/teacher/student/platform), Basic/Gold/Premium plans + comparison table (no pricing), benefits, live demo CTA, contact (9585573341, meetprasadviswa@gmail.com).
+- **Screenshots:** 10 PNGs in `marketing/screenshots/` captured via `scripts/capture_marketing_screenshots.mjs` (Puppeteer + local Chrome).
+- **URL:** `http://localhost/SchoolCRM/marketing/asimos-schoolcrm.html`
+- **Next:** Optional OG meta tags; host on production domain; base64-embed screenshots for portable single file.
+
+### 2026-09-04 — Timetable approval workflow + student/fee pages finalized
+
+- **Schema:** `admin/schema/timetable_workflow.sql` — `class_teacher_assignments`, `class_timetables` (legacy `class_sections` unchanged).
+- **Teacher:** `teacher/class_timetable.php` — class teacher builds grid, submits; locked after approval.
+- **Admin:** `admin/planner.php` — assign class teacher, edit/publish grid; `admin/approvals.php` processes timetable approvals.
+- **Student:** `modules/student/academic/TimeTable.php` — clean read-only view when approved.
+- **Fees:** `modules/student/academic/FeeDetails.php` — read-only; admin edits in `admin/fees.php`.
+- **Import:** Run `timetable_workflow.sql` and `fee_structures.sql` on `asimos` if tables missing.
+- **Next:** Optional fee receipt PDF; seed class teachers for existing classes.
+
+### 2026-09-04 — Fee structure (admin-only edit, student read-only)
+
+- **Schema:** `admin/schema/fee_structures.sql` — `fee_structures`, `student_fee_status`, `can_manage_fees` permission.
+- **Admin:** `admin/fees.php` — define fee terms per class/section, sync student records, update payment status; sidebar + search entry.
+- **Student:** `modules/student/academic/FeeDetails.php` — read-only table from `includes/fee_helpers.php`.
+- **Import:** Run `admin/schema/fee_structures.sql` on `asimos` if tables missing.
+- **Next:** Timetable approval workflow; optional fee receipt PDF.
+
+### 2026-09-03 — Fix student login redirect (APP_BASE_PATH)
+
+- **Root cause:** Empty `APP_BASE_PATH` in `.env` overrode auto-detect; Windows path case (`C:` vs `c:`) broke docroot detection → form posted to `http://localhost/backoffice/login.php` instead of `/SchoolCRM/backoffice/login.php`.
+- **Fix:** `detect_app_base_path()` in `config/app.php` — case-insensitive docroot match + `SCRIPT_NAME` fallback; empty `.env` value now means auto-detect.
+- **Verify:** Login → `/SchoolCRM/studentDashboard.php`; session cookie path `/SchoolCRM`.
+
+### 2026-09-03 — Production shipment (master agent, phases 0–5)
+
+- **Env:** `.env` created; DB 34 tables; smoke test 28/28 pass (`scripts/smoke_test.php`).
+- **P1 features:** `teacher/add_marks.php` POST → `marks`; attendance scoped + AJAX auth; `view_studentData.php` secured; dashboard SQL fallbacks.
+- **P2 features:** `TimeTable.php` → `timetable_slots`; `FeeDetails.php` not-configured UI; report card/PDF on `marks_new`.
+- **Cleanup:** Removed legacy commented sidebar block from `studentDashboard.php`.
+- **Docs:** `docs/USER_MANUAL.md`, `.cursor/rules/schoolcrm-features.mdc`, updated php/auth/overview.
+- **Next:** Production deploy smoke on live URL; mysqli migration on untouched files.
+
+### 2026-09-03 — P0 student portal navigation
+
+- **Auth:** All listed `modules/` student pages use `require_login(0)` via `portal.php` → `config/db.php` → `app.php`.
+- **Redirects:** Removed `error-404.html` and `backoffice/login.php` GET redirects; unauthenticated → `app_url('index.php')`.
+- **Links:** Replaced `users-profile.html`, `faq.html`, `index.html` with `users-profile.php`, `changePassword.php`, `studentDashboard.php`.
+- **Sidebar:** Student pages include `partials/sidebar.php` directly; `loadSidebar.js` uses `meta[name=app-base-path]` (no `/Asimos/`); `includes/sidebar.html` synced.
+- **DB/auth:** `db_mysqli()` in touched files; `changePassword.php` uses `app_password_verify`/`app_password_hash`; removed debug `echo $id`.
+- **Next:** Student mysqli prepared statements, retire duplicate `student/` portal.
+
+### 2026-09-03 — P0 admin/teacher navigation and layout
+
+- **Admin:** Removed legacy `../announcements.php` links from `admin/includes/sidebar.php`.
+- **Redirects:** `adminDashboard.php`, `teachersDashboard.php`, `backoffice/adminDashboard.php`, `backoffice/adminDashBoard.php`, `modules/dashboards/adminDashboard.php`, `modules/dashboards/teachersDashboard.php` → redirect-only shims via `app_url()`.
+- **Teacher:** Fixed double HTML on `add_homework.php`, `add_marks.php`, `add_announcement.php`; standardized header/footer/sidebar script paths with `app_url()`; `loadteacherSidebar.js` uses `meta[name=app-base]` for APP_BASE_PATH.
+- **Next:** Teacher mysqli migration, attendance auth hardening.
+
+### 2026-09-03 — Auth hardening: changePassword + retire student/ portal
+
+- **Changed:** `backoffice/changePassword.php` — `app_password_verify`/`app_password_hash`, `db_mysqli()` prepared statements, `app_url()` redirects (no `error-404.html`).
+- **Changed:** `student/*.php` — redirect stubs to main portal; `middleware/auth_student.php` uses `$_SESSION['id']` with `user_id` sync; `establish_user_session()` documents dual keys.
+- **Next:** Migrate `modules/common/account/changePassword.php` to same password helpers; remove `user_id` when safe.
+
+### 2026-09-03 — Production-readiness pass (auth, logout, branding, teacher nav)
+
+- **P0:** Resolved `logout.php` merge conflict; `app_logout()` in `config/app.php`; session destroy + `app_url('index.php')` redirect.
+- **P1:** Teacher header with `brand_logo` + sign out; `marks_manage.php`, `exam_timetable.php`; fixed `/Asimos/` redirects.
+- **P1:** Student modules: `modules/includes/portal.php`, centralized branding/logout; removed debug echo in student dashboard; fixed report card PDF path.
+- **P2:** `index.php` login page with error messages and branding; updated `partials/header.php` and `partials/sidebar.php`.
+- **Next:** Student mysqli migration, retire `student/` portal, teacher attendance auth hardening.
+
+### 2026-08-30 — User: update checkpoint after every prompt
+
+- **Decision:** Going forward, append this file after each prompt (and at session end), not only after large tasks. Skip only empty no-op turns.
+- **Changed:** Protocol item 3 in this file; Current checkpoint timestamps.
+- **App code:** none.
+- **Next:** Product work when requested.
+
+### 2026-08-30 — Checkpoint file created
+
+- **Why:** User asked for a living knowledge file so later models start from this checkpoint.
+- **Added:** `.cursor/rules/ai-checkpoint.mdc` (this file).
+- **Prior same day:** User asked for full-project summary + knowledge base. Added `schoolcrm-overview.mdc`, `schoolcrm-auth.mdc`, `schoolcrm-database.mdc`, `schoolcrm-php.mdc`. No PHP/feature edits.
+- **Next:** Wait for product work; keep appending here.
+
+### 2026-08-30 — Repo survey (baseline)
+
+- Confirmed primary login `index.php` → `backoffice/login.php` → student/teacher/admin dashboards.
+- Admin RBAC in `admin/includes/bootstrap.php`; teacher gate in `teacher/includes/teacher_auth.php`.
+- Dual student UIs: root legacy mysqli vs `student/` PDO + `middleware/auth_student.php`.
+- Core tables from `asimos_db_backup_27-12-2025.sql`; admin extras in `admin/schema/admin_controls.sql`.

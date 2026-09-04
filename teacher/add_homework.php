@@ -1,13 +1,7 @@
 <?php
-session_start();
+require_once __DIR__ . '/includes/teacher_auth.php';
 
-/* ---------------- AUTH ---------------- */
-if (!isset($_SESSION['id'])) {
-    header("Location: /Asimos/index.php");
-    exit;
-}
-
-$teacher_id = $_SESSION['id'];
+$teacher_id = $teacherId;
 
 /* ---------------- DB CONNECTION ---------------- */
 $conn = new mysqli("localhost", "root", "", "asimos");
@@ -107,57 +101,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $msg = "Failed to add homework";
     }
 }
+
+$pageTitle = 'Add Homework';
+include __DIR__ . '/includes/teacher_header.php';
 ?>
-
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Add Homework</title>
-
-    <link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="../assets/css/style.css" rel="stylesheet">
-
-    <script>
-        function loadSections() {
-            const standard = document.getElementById("standard").value;
-            fetch(`add_homework.php?action=sections&standard=${standard}`)
-                .then(res => res.text())
-                .then(data => document.getElementById("section").innerHTML = data);
-        }
-
-        function loadSubjects() {
-            const standard = document.getElementById("standard").value;
-            const section  = document.getElementById("section").value;
-
-            fetch(`add_homework.php?action=subjects&standard=${standard}&section=${section}`)
-                .then(res => res.text())
-                .then(data => document.getElementById("subject").innerHTML = data);
-        }
-
-        function loadStudents() {
-            const standard = document.getElementById("standard").value;
-            const section  = document.getElementById("section").value;
-
-            fetch(`add_homework.php?action=students&standard=${standard}&section=${section}`)
-                .then(res => res.text())
-                .then(data => document.getElementById("student_id").innerHTML = data);
-        }
-
-        function toggleStudent(sel) {
-            document.getElementById("studentBox").style.display =
-                (sel.value === 'student') ? 'block' : 'none';
-        }
-    </script>
-</head>
-<?php include "includes/teacher_header.php"; ?>
-  <!-- ======= Sidebar ======= -->
-  <aside id="sidebar" class="sidebar">
-    <div id="sidebar-container"></div>
-    <script src="../teacher/includes/loadteacherSidebar.js"></script>
-  </aside>
-  <!-- ======= Sidebar ======= -->
-<body>
-
+<aside id="sidebar" class="sidebar">
+  <div id="sidebar-container"></div>
+  <script src="<?= e(app_url('teacher/includes/loadteacherSidebar.js')) ?>"></script>
+</aside>
 
 <main id="main" class="main">
 <div class="container mt-4">
@@ -238,5 +189,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 </main>
 
-</body>
-</html>
+<script>
+function loadSections() {
+    const standard = document.getElementById("standard").value;
+    fetch(`add_homework.php?action=sections&standard=${standard}`)
+        .then(res => res.text())
+        .then(data => document.getElementById("section").innerHTML = data);
+}
+
+function loadSubjects() {
+    const standard = document.getElementById("standard").value;
+    const section  = document.getElementById("section").value;
+
+    fetch(`add_homework.php?action=subjects&standard=${standard}&section=${section}`)
+        .then(res => res.text())
+        .then(data => document.getElementById("subject").innerHTML = data);
+}
+
+function loadStudents() {
+    const standard = document.getElementById("standard").value;
+    const section  = document.getElementById("section").value;
+
+    fetch(`add_homework.php?action=students&standard=${standard}&section=${section}`)
+        .then(res => res.text())
+        .then(data => document.getElementById("student_id").innerHTML = data);
+}
+
+function toggleStudent(sel) {
+    document.getElementById("studentBox").style.display =
+        (sel.value === 'student') ? 'block' : 'none';
+}
+</script>
+
+<?php include __DIR__ . '/includes/teacher_footer.php'; ?>

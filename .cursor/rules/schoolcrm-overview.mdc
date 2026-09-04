@@ -1,0 +1,34 @@
+---
+description: Asimos SchoolCRM product map, stack, and folder layout
+alwaysApply: true
+---
+
+# Asimos SchoolCRM
+
+PHP school management app for **Asimos** (NiceAdmin / Bootstrap UI). DB name: `asimos`. Local stack: PHP 8.2, MariaDB 10.4, XAMPP-style `root` / empty password.
+
+## Portals (current vs legacy)
+
+- **Primary login:** `index.php` POSTs to `backoffice/login.php`. Roles: `user_login.access` **0=student, 1=teacher, 2=admin**. Redirects: student → `studentDashboard.php`, teacher → `teacher/dashboard.php`, admin → `admin/dashboard.php`.
+- **Admin (preferred):** `admin/*.php` with `admin/includes/bootstrap.php` (session + RBAC + audit helpers).
+- **Teacher (preferred):** `teacher/*.php` via `teacher/includes/teacher_auth.php` (access must be 1).
+- **Student (legacy, used after main login):** root `studentDashboard.php`, `FeeDetails.php`, `TimeTable.php`, `homework.php`, `reportCard.php`, `reportCard_pdf.php`, `users-profile.php`, `announcements.php`, `changePassword.php`.
+- **Student (`student/` retired):** `student/*.php` redirect to main portal (`index.php`, `homework.php`, `reportCard.php`, `announcements.php`, `studentDashboard.php`, `logout.php`). Use root student pages only.
+
+## Directories
+
+- `admin/` — dashboard, students, teachers, attendance, homework, marks, RBAC, approvals, bulk ops, planner, attendance governance, exams, notifications, analytics, security, data quality, delegation. Schema extra: `admin/schema/admin_controls.sql`.
+- `teacher/` — dashboard, attendance, add homework/marks/announcements, view students, profile. Sidebar JS: `teacher/includes/loadteacherSidebar.js`.
+- `student/` — retired redirect stubs to main portal (was alternate PDO UI).
+- `backoffice/` — login, logout, changePassword, stub `attendanceToday.php`.
+- `config/db.php` — PDO singleton (`db()`). Most pages still inline `mysqli` to `localhost/asimos`.
+- `forms/` — attendance POST/AJAX endpoints.
+- `partials/` — student header/sidebar (NiceAdmin).
+- `dompdf-3.1.4/` — PDF report cards.
+- Root `components-*.html`, `forms-*.html`, `charts-*.html` — unused NiceAdmin demos. Do not treat as app routes.
+
+## Prefer when changing features
+
+Extend `admin/`, `teacher/`, and root student pages. Do not add features under `student/` — it only redirects to the main portal.
+
+Session handoff for agents: always-apply `.cursor/rules/ai-checkpoint.mdc` (read first, append work log when done).

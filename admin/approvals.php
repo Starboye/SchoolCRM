@@ -1,13 +1,30 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
+require_once dirname(__DIR__) . '/includes/timetable_helpers.php';
+
 $pageTitle='Approval Workflows';
 $msg='';
 if($_SERVER['REQUEST_METHOD']==='POST'){
   require_permission($db,'can_manage_users');
   $id=(int)($_POST['id']??0); $action=$_POST['action']??''; $note=trim($_POST['note']??'');
   $status = $action==='approve' ? 'approved' : 'rejected';
+
+  $reqRow = null;
+  if ($id > 0) {
+    $reqStmt = $db->prepare('SELECT module, entity_id FROM approval_requests WHERE id = ? LIMIT 1');
+    $reqStmt->bind_param('i', $id);
+    $reqStmt->execute();
+    $reqRow = $reqStmt->get_result()->fetch_assoc();
+    $reqStmt->close();
+  }
+
   $stmt=mysqli_prepare($db,"UPDATE approval_requests SET status=?, reviewed_by=?, reviewed_at=NOW(), review_note=? WHERE id=? AND status='pending'");
   $by=(string)$_SESSION['id']; mysqli_stmt_bind_param($stmt,'sssi',$status,$by,$note,$id); mysqli_stmt_execute($stmt); mysqli_stmt_close($stmt);
+
+  if ($reqRow && $reqRow['module'] === 'timetable' && !empty($reqRow['entity_id'])) {
+    tt_process_approval($db, (string)$reqRow['entity_id'], $status, $by, $note);
+  }
+
   log_audit($db,'approval',$status,'approval_request',(string)$id,null,['note'=>$note]);
   $msg='Request updated.';
 }
