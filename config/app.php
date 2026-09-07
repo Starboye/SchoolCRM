@@ -77,7 +77,7 @@ define('APP_NAME', env_str('APP_NAME', 'CampusToday'));
 define('APP_INITIALS', env_str('APP_INITIALS', 'CT'));
 define('BRAND_LOGO_PATH', env_str('BRAND_LOGO_PATH', 'assets/img/campustoday/icon-48.png'));
 define('BRAND_FAVICON_PATH', env_str('BRAND_FAVICON_PATH', 'assets/img/campustoday/icon-32.png'));
-define('BRAND_LOGO_WIDE_PATH', env_str('BRAND_LOGO_WIDE_PATH', 'assets/img/campustoday/logo-horizontal-compact.png'));
+define('BRAND_LOGO_WIDE_PATH', env_str('BRAND_LOGO_WIDE_PATH', 'assets/img/campustoday/logo-primary.png'));
 define('BRAND_LOGO_LOGIN_PATH', env_str('BRAND_LOGO_LOGIN_PATH', 'assets/img/campustoday/logo-login.png'));
 define('BRAND_BOOT_ICON_PATH', env_str('BRAND_BOOT_ICON_PATH', 'assets/img/campustoday/icon-512.png'));
 $configuredBase = env_str('APP_BASE_PATH', '');
