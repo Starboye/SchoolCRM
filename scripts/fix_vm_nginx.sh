@@ -61,17 +61,31 @@ EOF
 
 sudo ln -sf "$API_SITE" /etc/nginx/sites-enabled/campustoday
 sudo ln -sf "$WEB_SITE" /etc/nginx/sites-enabled/campustoday-web
-
-# Remove default nginx site if it steals traffic
 sudo rm -f /etc/nginx/sites-enabled/default
 
 sudo nginx -t
 sudo systemctl reload nginx
 
-echo ""
-echo "==> HTTP vhosts configured. Re-apply HTTPS (certbot updates both hosts):"
-echo "    sudo certbot --nginx -d ${API_HOST} -d ${WEB_HOST}"
+echo "==> Re-apply HTTPS (required — otherwise app.* HTTPS may hit Laravel)"
+if command -v certbot >/dev/null 2>&1; then
+  sudo certbot --nginx \
+    -d "${API_HOST}" \
+    -d "${WEB_HOST}" \
+    --non-interactive \
+    --agree-tos \
+    --redirect \
+    --expand \
+    -m "${CERTBOT_EMAIL:-meetprasadviswa@gmail.com}" \
+    || echo "    Certbot failed — run manually: sudo certbot --nginx -d ${API_HOST} -d ${WEB_HOST}"
+else
+  echo "    Install certbot, then: sudo certbot --nginx -d ${API_HOST} -d ${WEB_HOST}"
+fi
+
+sudo nginx -t
+sudo systemctl reload nginx
+
 echo ""
 echo "Verify:"
-echo "    curl -sI -H 'Host: ${WEB_HOST}' http://127.0.0.1/ | head -5"
-echo "    curl -sI -H 'Host: ${API_HOST}' http://127.0.0.1/up | head -5"
+echo "  curl -sI https://${WEB_HOST}/ | head -3"
+echo "  curl -sI https://${API_HOST}/v1/health | head -3"
+curl -sI -H "Host: ${WEB_HOST}" http://127.0.0.1/ | head -3 || true
