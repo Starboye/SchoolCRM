@@ -44,6 +44,13 @@ This file is the **handoff log** for any agent or model working on SchoolCRM. Do
 
 ## Work log (newest first)
 
+### 2026-09-07 — GitHub deploy path for GCP web (app.campustoday.in)
+
+- **Verified:** Repo already on GitHub `https://github.com/Starboye/SchoolCRM.git`, `main` synced with `origin/main`, `.env` gitignored.
+- **Added:** `scripts/deploy_vm_web.sh` — clone/pull → `/var/www/campustoday-web`, nginx `app.campustoday.in`, `.env` from example.
+- **VM state:** API + HTTPS on `api.campustoday.in`; web folder missing (404 on `app.`). Deploy via browser SSH + script or manual `git clone`.
+- **Next:** Run deploy script on VM; set `.env` DB creds; certbot for `app.` if needed; smoke test login.
+
 ### 2026-09-04 — Logo alignment, login size, post-login skeleton loader
 
 - **Header logos:** `brand.css` — vertical centering in 60px header; switched wide logo default to `header-light.png` (purpose-built for navbars).
