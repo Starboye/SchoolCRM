@@ -80,6 +80,21 @@ if [[ -f "$API_ENV" && -f "$WEB_ENV" ]]; then
   fi
 fi
 
+# Ensure header uses 01_CampusToday_primary (not legacy compact/no-tagline assets)
+WEB_ENV="$WEB_ROOT/.env"
+if [[ -f "$WEB_ENV" ]]; then
+  set_brand_env() {
+    local key="$1" val="$2"
+    if grep -q "^${key}=" "$WEB_ENV"; then
+      sudo sed -i "s|^${key}=.*|${key}=${val}|" "$WEB_ENV"
+    else
+      echo "${key}=${val}" | sudo tee -a "$WEB_ENV" > /dev/null
+    fi
+  }
+  set_brand_env BRAND_LOGO_WIDE_PATH "assets/img/campustoday/header-primary.png"
+  sudo chown meetprasadviswa:www-data "$WEB_ENV"
+fi
+
 echo "==> Nginx site $NGINX_SITE"
 sudo tee "$NGINX_SITE" > /dev/null <<EOF
 server {
