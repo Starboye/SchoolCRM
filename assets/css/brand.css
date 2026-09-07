@@ -7,21 +7,48 @@
   background: transparent !important;
 }
 
-/* Header logo — vertically center inside 60px NiceAdmin header */
+/* Header left cluster: logo + sidebar toggle */
+.header > .d-flex.align-items-center.justify-content-between {
+  flex: 0 0 auto;
+  min-width: 0;
+  height: 60px;
+  gap: 0.75rem;
+  align-items: center !important;
+  padding-right: 0.25rem;
+}
+
 .header > .d-flex.align-items-center {
   height: 100%;
   align-items: center !important;
 }
 
-.header .logo.app-brand {
-  display: flex;
+.header .toggle-sidebar-btn {
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0 0 0 0.25rem;
+  line-height: 1;
+  height: 60px;
+}
+
+/* Override NiceAdmin fixed 280px logo width */
+.header .logo,
+.header .logo.app-brand {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-start;
   height: 60px;
   line-height: 1;
   margin: 0;
   padding: 0;
   background: transparent !important;
   width: auto !important;
+  min-width: 0;
+  max-width: min(220px, 46vw);
+  flex: 0 1 auto;
+  overflow: hidden;
 }
 
 .header .logo.app-brand img {
@@ -31,15 +58,20 @@
 }
 
 .header .app-brand-wide {
-  height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: 44px;
+  line-height: 0;
+  max-width: 100%;
   background: transparent !important;
 }
 
 .header .app-brand-wide img {
-  max-height: 56px !important;
-  height: 56px !important;
+  max-height: 44px !important;
+  height: 44px !important;
   width: auto !important;
-  max-width: min(440px, 58vw) !important;
+  max-width: 100% !important;
   object-fit: contain;
   object-position: left center;
   display: block;
@@ -50,19 +82,19 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  flex: 0 0 44px;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
   border-radius: 8px;
-  overflow: visible;
+  overflow: hidden;
   background: transparent !important;
 }
 
 .app-brand-mark img {
   width: auto;
   height: auto;
-  max-width: 44px;
-  max-height: 44px;
+  max-width: 40px;
+  max-height: 40px;
   object-fit: contain;
   object-position: center;
   margin: 0;
@@ -74,8 +106,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 8px;
   border: 1px dashed #4154f1;
   background: #f6f9ff;
@@ -99,15 +131,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
-  height: 56px;
+  height: 44px;
   line-height: 0;
   background: transparent !important;
 }
 
 .app-brand-wide img {
-  max-height: 56px;
+  max-height: 44px;
   width: auto;
-  max-width: min(440px, 58vw);
+  max-width: min(220px, 46vw);
   object-fit: contain;
   object-position: left center;
   margin: 0;
@@ -115,67 +147,74 @@
   background: transparent !important;
 }
 
-/* Login page — large transparent PNG logo */
+/* Login page — centered logo + tagline */
 .login-brand-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 100%;
-  max-width: 900px;
+  max-width: 560px;
   margin: 0 auto;
-  padding: 0.5rem 0 1rem;
+  padding: 0.5rem 1rem 1.25rem;
   background: transparent;
 }
 
 .app-brand-login {
-  width: 100%;
+  width: auto !important;
+  max-width: 100%;
   justify-content: center;
   padding: 0;
+  margin: 0 auto;
   background: transparent !important;
 }
 
 .app-brand-login img {
-  max-width: min(820px, 98vw) !important;
-  max-height: none !important;
-  width: 100% !important;
+  width: auto !important;
+  max-width: min(480px, 92vw) !important;
+  max-height: 132px !important;
   height: auto !important;
   object-fit: contain;
+  object-position: center center;
   display: block;
   margin: 0 auto !important;
   background: transparent !important;
 }
 
-/* Override NiceAdmin .logo constraints */
 .logo.app-brand-login img {
-  max-height: none !important;
+  max-height: 132px !important;
 }
 
 @media (min-width: 1200px) {
+  .header .logo,
   .header .logo.app-brand {
     width: auto !important;
     min-width: 0;
-    max-width: none !important;
+    max-width: 240px !important;
   }
 }
 
 @media (max-width: 991.98px) {
   .header .logo.app-brand {
     height: 60px;
+    max-width: min(200px, 52vw);
   }
 
   .app-brand-mark,
   .app-brand-placeholder {
-    width: 40px;
-    height: 40px;
-    flex-basis: 40px;
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
   }
 
   .app-brand-mark img {
-    max-width: 40px;
-    max-height: 40px;
+    max-width: 36px;
+    max-height: 36px;
   }
 
   .header .app-brand-wide img {
-    max-height: 48px !important;
-    height: 48px !important;
-    max-width: min(320px, 70vw) !important;
+    max-height: 40px !important;
+    height: 40px !important;
+    max-width: 100% !important;
   }
 }
 
@@ -332,7 +371,13 @@
     grid-template-columns: 1fr;
   }
 
+  .login-brand-wrap {
+    max-width: 100%;
+    padding-bottom: 1rem;
+  }
+
   .app-brand-login img {
-    max-width: 98vw !important;
+    max-width: 94vw !important;
+    max-height: 112px !important;
   }
 }
