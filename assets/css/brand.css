@@ -57,6 +57,22 @@
   background: transparent !important;
 }
 
+.header .logo.app-brand-header-primary {
+  max-width: min(300px, 58vw);
+}
+
+.header .logo.app-brand-header-primary img {
+  max-height: 52px !important;
+  height: 52px !important;
+  width: auto !important;
+  max-width: 100% !important;
+  object-fit: contain;
+  object-position: left center;
+  display: block;
+  margin: 0 !important;
+  background: transparent !important;
+}
+
 .header .app-brand-wide {
   display: inline-flex;
   align-items: center;
@@ -197,6 +213,15 @@
   .header .logo.app-brand {
     height: 60px;
     max-width: min(200px, 52vw);
+  }
+
+  .header .logo.app-brand-header-primary {
+    max-width: min(220px, 62vw);
+  }
+
+  .header .logo.app-brand-header-primary img {
+    max-height: 44px !important;
+    height: 44px !important;
   }
 
   .app-brand-mark,

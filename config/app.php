@@ -78,6 +78,8 @@ define('APP_INITIALS', env_str('APP_INITIALS', 'CT'));
 define('BRAND_LOGO_PATH', env_str('BRAND_LOGO_PATH', 'assets/img/campustoday/icon-48.png'));
 define('BRAND_FAVICON_PATH', env_str('BRAND_FAVICON_PATH', 'assets/img/campustoday/icon-32.png'));
 define('BRAND_LOGO_WIDE_PATH', env_str('BRAND_LOGO_WIDE_PATH', 'assets/img/campustoday/header-primary.png'));
+/** Header nav always uses 01_CampusToday_primary — not overridable by legacy .env compact paths. */
+define('BRAND_HEADER_LOGO_PATH', 'assets/img/campustoday/header-primary.png');
 define('BRAND_LOGO_LOGIN_PATH', env_str('BRAND_LOGO_LOGIN_PATH', 'assets/img/campustoday/logo-login.png'));
 define('BRAND_BOOT_ICON_PATH', env_str('BRAND_BOOT_ICON_PATH', 'assets/img/campustoday/icon-512.png'));
 $configuredBase = env_str('APP_BASE_PATH', '');
@@ -210,13 +212,37 @@ function brand_asset_exists(string $relativePath): bool {
 }
 
 function brand_asset_url(string $relativePath, string $fallbackPath = ''): string {
-    if ($relativePath !== '' && brand_asset_exists($relativePath)) {
-        return app_url($relativePath);
+    $root = dirname(__DIR__);
+    $resolve = static function (string $path) use ($root): string {
+        $path = ltrim(str_replace('\\', '/', trim($path)), '/');
+        if ($path === '') {
+            return '';
+        }
+        $fs = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $path);
+        if (!is_file($fs)) {
+            return '';
+        }
+        $url = app_url($path);
+        $mtime = @filemtime($fs);
+        if ($mtime !== false) {
+            $url .= '?v=' . $mtime;
+        }
+        return $url;
+    };
+
+    $url = $resolve($relativePath);
+    if ($url !== '') {
+        return $url;
     }
-    if ($fallbackPath !== '' && brand_asset_exists($fallbackPath)) {
-        return app_url($fallbackPath);
+    return $resolve($fallbackPath);
+}
+
+function brand_header_logo_url(): string {
+    $url = brand_asset_url(BRAND_HEADER_LOGO_PATH);
+    if ($url !== '') {
+        return $url;
     }
-    return '';
+    return brand_asset_url(BRAND_LOGO_WIDE_PATH);
 }
 
 function brand_head_tags(): void {
@@ -292,8 +318,7 @@ function page_title(string $title): string {
 
 function brand_logo(string $href, string $variant = 'header'): void {
     $loginUrl = brand_asset_url(BRAND_LOGO_LOGIN_PATH);
-    $iconUrl = brand_asset_url(BRAND_LOGO_PATH);
-    $wideUrl = brand_asset_url(BRAND_LOGO_WIDE_PATH);
+    $headerUrl = brand_header_logo_url();
 
     if ($variant === 'login' && $loginUrl !== '') {
         echo '<a href="' . e($href) . '" class="logo d-flex align-items-center justify-content-center app-brand app-brand-login">';
@@ -301,6 +326,16 @@ function brand_logo(string $href, string $variant = 'header'): void {
         echo '</a>';
         return;
     }
+
+    if ($variant === 'header' && $headerUrl !== '') {
+        echo '<a href="' . e($href) . '" class="logo d-flex align-items-center app-brand app-brand-header-primary">';
+        echo '<img src="' . e($headerUrl) . '" alt="' . e(APP_NAME) . '">';
+        echo '</a>';
+        return;
+    }
+
+    $iconUrl = brand_asset_url(BRAND_LOGO_PATH);
+    $wideUrl = brand_asset_url(BRAND_LOGO_WIDE_PATH);
 
     echo '<a href="' . e($href) . '" class="logo d-flex align-items-center app-brand">';
     if ($wideUrl !== '') {
