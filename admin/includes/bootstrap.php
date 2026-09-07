@@ -1,8 +1,9 @@
 <?php
-session_start();
+require_once __DIR__ . '/../../config/db.php';
+app_session_start();
 
 if (!isset($_SESSION['access'], $_SESSION['id'], $_SESSION['name'])) {
-    header('Location: ../index.php');
+    header('Location: ' . app_url('index.php'));
     exit;
 }
 
@@ -12,14 +13,7 @@ if ($access !== 2) {
     die('Unauthorized access');
 }
 
-$db = mysqli_connect('localhost', 'root', '', 'asimos');
-if (!$db) {
-    die('Database connection failed: ' . mysqli_connect_error());
-}
-
-function e(string $value): string {
-    return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
-}
+$db = db_mysqli();
 
 function admin_permissions(mysqli $db, string $userId): array {
     static $cache = null;
